@@ -1,0 +1,6 @@
+#VS Code settings folder
+.vscode
+#Testing build
+chip8emu.exe
+#Emulator state file
+chip8state.c8
