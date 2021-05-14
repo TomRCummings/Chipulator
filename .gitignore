@@ -2,6 +2,7 @@
 .vscode
 #Testing build
 chip8emu.exe
+chip8.exe
 #Emulator state file
 chip8state.c8
 #Test ROMs
