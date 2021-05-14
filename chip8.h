@@ -42,7 +42,7 @@ class chip8 {
 
     public:
     void initialize();
-    void loadROM(unsigned char program[]);
+    void loadROM(unsigned char* program);
     unsigned char* getMemory();
     void cycle();
 };
@@ -68,6 +68,12 @@ void chip8::initialize() {
             stack[i] = 0x0;
             V[i] = 0x0;
         }
+    }
+}
+
+void chip8::loadROM(unsigned char program[]) {
+    for (int i = 512; i < 4096; i++) {
+        memory[i] = program[i-512];
     }
 }
 

@@ -4,3 +4,6 @@
 chip8emu.exe
 #Emulator state file
 chip8state.c8
+#Test ROMs
+random_number_test.ch8
+modified.ch8
