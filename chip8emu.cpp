@@ -24,7 +24,7 @@ inline HexCharStruct hex(unsigned char _c)
 
 void saveChip8State(chip8 machine);
 void readFromRom(std::string filename, unsigned char* dataBuffer, size_t fileSize);
-void printScreenToConsole(bool* screenBuffer);
+void printScreenToConsole(unsigned char* screenBuffer);
 unsigned char getInput();
 
 int main() {
@@ -36,20 +36,18 @@ int main() {
   //Create program buffer
   unsigned char dataBuffer[fileSize] = { 0 };
   readFromRom(romFilePath, dataBuffer, fileSize);
-  //for (int i = 0; i < 3586; i++) {
-  //    std::cout << hex(dataBuffer[i]) << " ";
-  //    if (i % 100 == 0) {
-  //        std::cout << std::endl;
-  //    }
-  //}
   theChip8.loadROM(dataBuffer);
+
   for (;;) {
-    std::cout << "new cycle" << std::endl;
     theChip8.cycle();
-    std::cout << std::string(100, '\n');
-    printScreenToConsole(theChip8.getScreen());
+    if (theChip8.getDrawFlag()) {
+      std::cout << std::string(100, '\n');
+      printScreenToConsole(theChip8.getScreen());
+      theChip8.setDrawFlag(false);
+    }
     theChip8.updateInput(getInput());
   }
+
   return 0;
 }
 
@@ -57,7 +55,23 @@ void saveChip8State(chip8 machine) {
     std::ofstream file;
     file.open("chip8state.c8", std::ios::binary);
     unsigned char* machineMemory = machine.getMemory();
+    unsigned char* machineRegisters = machine.getRegisters();
+    unsigned short machineI = machine.getI();
+    std::cout << machineI << std::endl;
+    unsigned short machinePC = machine.getPC();
+    std::cout << machinePC << std::endl;
+    unsigned short* machineStack = machine.getStack();
+    unsigned short machineSP = machine.getStackPointer();
+    unsigned short machineDT = machine.getDelayTimer();
+    unsigned short machineST = machine.getSoundTimer();
     file.write((char *)&machineMemory[0], 4096);
+    file.write((char *)&machineRegisters[0], 16);
+    file.write((char *)&machineI, sizeof(machineI));
+    file.write((char *)&machinePC, sizeof(machinePC));
+    file.write((char *)&machineStack, sizeof(machineStack));
+    file.write((char *)&machineSP, sizeof(machineSP));
+    file.write((char *)&machineDT, sizeof(machineDT));
+    file.write((char *)&machineST, sizeof(machineST));
     file.close();
 }
 
@@ -71,9 +85,9 @@ void readFromRom(std::string filename, unsigned char* dataBuffer, size_t fileSiz
     }
 }
 
-void printScreenToConsole(bool* screenBuffer) {
+void printScreenToConsole(unsigned char* screenBuffer) {
   for (int i = 0; i < 2048; i++) {
-    if (screenBuffer[i]) {
+    if (screenBuffer[i] != 0) {
       std::cout << "0";
     } else {
       std::cout << ".";

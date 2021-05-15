@@ -12,7 +12,8 @@ class chip8 {
     //16-bit register (stores memory addresses, so rightmost 12 bit are used)
     unsigned short I;
     //Screen array (64x32 pixels)
-    bool screen[2048];
+    unsigned char screen[2048];
+    bool drawFlag;
     //Key state (chip-8 used hexadecimal keypad)
     bool key[16];
     //Program counter
@@ -48,8 +49,17 @@ class chip8 {
     void initialize();
     void loadROM(unsigned char* program);
     unsigned char* getMemory();
+    unsigned char* getRegisters();
+    unsigned short getI();
+    unsigned short getPC();
+    unsigned short* getStack();
+    unsigned short getStackPointer();
+    unsigned short getDelayTimer();
+    unsigned short getSoundTimer();
+    unsigned char* getScreen();
+    bool getDrawFlag();
+    void setDrawFlag(bool setter);
     void cycle();
-    bool* getScreen();
     void updateInput(unsigned char buttonPressed);
 };
 
@@ -61,6 +71,7 @@ void chip8::initialize() {
     stackPointer = 0x0;
     delayTimer = 0x0;
     soundTimer= 0x0;
+    drawFlag = false;
     for(int i = 0; i < 4096; i++) {
         if (i < 80) {
             memory[i] = chip8FontSet[i];
@@ -88,8 +99,52 @@ unsigned char* chip8::getMemory() {
     return memory;
 }
 
+unsigned char* chip8::getRegisters() {
+    return V;
+}
+
+unsigned short chip8::getI() {
+    return I;
+}
+
+unsigned short chip8::getPC() {
+    return pc;
+}
+
+unsigned short* chip8::getStack() {
+    return stack;
+}
+
+unsigned short chip8::getStackPointer() {
+    return stackPointer;
+}
+
+unsigned short chip8::getDelayTimer() {
+    return delayTimer;
+}
+
+unsigned short chip8::getSoundTimer() {
+    return soundTimer;
+}
+
+unsigned char* chip8::getScreen() {
+    return screen;
+}
+
+bool chip8::getDrawFlag() {
+    return drawFlag;
+}
+
+void chip8::setDrawFlag(bool setter) {
+    drawFlag = setter;
+}
+
 void chip8::cycle() {
     bool keyPressed = false;
+    unsigned short x;
+    unsigned short y;
+    unsigned short pixel;
+
     //Get the current opcode from memory using the program counter
     opcode = memory[pc] << 8 | memory[pc+1];
     //Decode and execute opcode in a switch statement
@@ -99,18 +154,20 @@ void chip8::cycle() {
             pc += 2;
             break;
         case 0xD000: //0xDxyn: Display n-byte sprite at (register x, register y), starting at memory location I
+            x = V[(opcode & 0x0F00) >> 8];
+            y = V[(opcode & 0x00F0) >> 4];
             for (int i = 0; i < (opcode & 0x000F); i++) {
-                for (int j = 1; j < 8; j--) {
-                    if ((memory[I+i] >> (8-j)) & 0x0001 != 0) {
-                        if (screen[(((V[(opcode & 0x00F0)>>4]+i)*64)%2048)+((V[(opcode & 0x0F00)>>8]+(j-1))%64)]) {
-                            V[0xF] = 0xFF;
-                            screen[(((V[(opcode & 0x00F0)>>4]+i)*64)%2048)+((V[(opcode & 0x0F00)>>8]+(j-1))%64)] = false;
-                        } else {
-                            screen[(((V[(opcode & 0x00F0)>>4]+i)*64)%2048)+((V[(opcode & 0x0F00)>>8]+(j-1))%64)] = true;
+                pixel = memory[I + i];
+                for (int j = 0; j < 8; j++) {
+                    if ((pixel & (0x80 >> j)) != 0) {
+                        if (screen[(x + j + ((y + i) * 64)) % (64*32)] == 1) {
+                            V[0xF] = 1;
                         }
+                        screen[(x + j + ((y + i) * 64)) % (64*32)] ^= 1;
                     }
                 }
             }
+            drawFlag = true;
             pc += 2;
             break;
         case 0xF000:
@@ -181,6 +238,7 @@ void chip8::cycle() {
                     for (int i = 0; i < 2048; i++) {
                         screen[i] = false;
                     }
+                    drawFlag = true;
                     pc += 2;
                     break;
                 
@@ -198,10 +256,6 @@ void chip8::cycle() {
         default: //Any unrecognizable opcode should throw an error and print the opcode
             printf("Error with opcode: 0x%x\n", opcode);
     }
-}
-
-bool* chip8::getScreen() {
-    return screen;
 }
 
 void chip8::updateInput(unsigned char buttonPressed) {
