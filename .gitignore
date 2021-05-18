@@ -1,8 +1,14 @@
+#CMakeList file
+CMakeList.txt
 #VS Code settings folder
 .vscode
-#Testing build
-chip8emu.exe
+#Visual Studio files
+.vs
+#Build tree
+/build
 #Emulator state file
 chip8state.c8
 #Test ROMs
 /ROMS
+#Misc
+/out

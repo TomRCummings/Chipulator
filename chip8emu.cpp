@@ -22,7 +22,7 @@ std::chrono::duration<float, std::milli> accumulator{};
 chip8 theChip8;
 
 void saveChip8State(chip8 machine);
-void readFromRom(std::string filename, unsigned char* dataBuffer, size_t fileSize);
+void readFromRom(std::string filename, unsigned char * dataBuffer, size_t fileSize);
 void printScreenToConsole(unsigned char* screenBuffer, wchar_t* consoleBuffer);
 unsigned char getInput();
 
@@ -34,14 +34,14 @@ int main() {
   DWORD dwBytesWritten = 0;
 
   theChip8.initialize();
-  std::string romFilePath = "ROMS/PONG";
+  std::string romFilePath = "C:/Users/Ryan/Documents/Projects/chip8emu/build/Debug/ROMS/TICTAC";
   //Max number of bytes in a Chip-8 ROM
   const size_t fileSize = 3586;
   //Create program buffer
   unsigned char dataBuffer[fileSize] = { 0 };
   readFromRom(romFilePath, dataBuffer, fileSize);
   theChip8.loadROM(dataBuffer);
-  saveChip8State(theChip8);
+  //saveChip8State(theChip8);
 
   for (;;) {
     accumulator += (std::chrono::steady_clock::now() - lastTime);
@@ -95,12 +95,14 @@ void saveChip8State(chip8 machine) {
     file.close();
 }
 
-void readFromRom(std::string filename, unsigned char* dataBuffer, size_t fileSize) {
+void readFromRom(std::string filename, unsigned char * dataBuffer, size_t fileSize) {
     //Open file stream to specified file
-    std::ifstream inf(filename.c_str());
+    std::ifstream inf(filename.c_str(), std::ios::binary);
+    int i = 0;
 
     if (inf) {
         //Read in bytes from file to buffer
+        i = 1;
         inf.read((char*)&dataBuffer[0], fileSize);
     }
 }
