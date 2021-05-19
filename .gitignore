@@ -1,14 +1,13 @@
-#CMakeList file
-CMakeList.txt
+#CMake files
+CMakeSettings.json
+CMakeLists.txt
 #VS Code settings folder
 .vscode
 #Visual Studio files
 .vs
 #Build tree
-/build
+/out
 #Emulator state file
 chip8state.c8
 #Test ROMs
 /ROMS
-#Misc
-/out
