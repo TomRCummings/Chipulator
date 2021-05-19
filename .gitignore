@@ -1,6 +1,3 @@
-#CMake files
-CMakeSettings.json
-CMakeLists.txt
 #VS Code settings folder
 .vscode
 #Visual Studio files
