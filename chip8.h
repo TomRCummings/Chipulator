@@ -64,5 +64,5 @@ public:
 	void setDrawFlag(bool setter);
 	void decrementTimers();
 	void cycle();
-	void updateInput(unsigned char buttonPressed);
+	void updateInput(int buttonPressed);
 };

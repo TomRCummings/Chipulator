@@ -87,7 +87,6 @@ void chip8::decrementTimers() {
 }
 
 void chip8::cycle() {
-	bool keyPressed = false;
 	unsigned short x;
 	unsigned short y;
 	unsigned short pixel;
@@ -135,10 +134,13 @@ void chip8::cycle() {
 	case 0xE000:
 		switch (opcode & 0x00FF) {
 		case 0x009E: //0xEx9E: Skip next instruction if x key is pressed
-			if (key[(opcode & 0x0F00) >> 8] == 1) {
+			if (key[(opcode & 0x0F00) >> 8]) {
 				pc += 4;
 				INFO << opcode << ": Key was pressed, skipped an instruction.";
 				INFO << "PC at " << pc;
+				for (int i = 0; i < 16; i++) {
+					key[i] = false;
+				}
 			}
 			else {
 				pc += 2;
@@ -148,7 +150,7 @@ void chip8::cycle() {
 
 			break;
 		case 0x00A1: //0xExA1: Skip next instruction if x key is not pressed
-			if (key[(opcode & 0x0F00) >> 8] != 1) {
+			if (!key[(opcode & 0x0F00) >> 8]) {
 				pc += 4;
 				INFO << opcode << ": Key was not pressed, skipped an instruction.";
 				INFO << "PC at " << pc;
@@ -157,6 +159,9 @@ void chip8::cycle() {
 				pc += 2;
 				INFO << opcode << ": Key was pressed, did not skip an instruction.";
 				INFO << "PC at " << pc;
+				for (int i = 0; i < 16; i++) {
+					key[i] = false;
+				}
 			}
 			break;
 		}
@@ -167,18 +172,13 @@ void chip8::cycle() {
 			for (int i = 0; i < 16; i++) {
 				if (key[i]) {
 					V[(opcode & 0x0F00) >> 8] = i;
-					keyPressed = true;
+					pc += 2;
+					INFO << opcode << ": " << (int)V[(opcode & 0x0F00) >> 8] << " key was pressed, and value stored in register " << ((opcode & 0x0F00) >> 8) << ".";
+					INFO << "PC at " << pc;
+					for (int j = 0; j < 16; j++) {
+							key[j] = false;
+					}
 				}
-			}
-			if (keyPressed) {
-				pc += 2;
-				INFO << opcode << ": " << (int)V[(opcode & 0x0F00) >> 8] << " key was pressed and value stored in I.";
-				INFO << "I contains " << I;
-				INFO << "PC at " << pc;
-			}
-			else {
-				INFO << opcode << ": No key was pressed this cycle, repeating opcode.";
-				INFO << "PC at " << pc;
 			}
 			break;
 		case 0x001E: //0xFx1E: Add I to register x and store result in I
@@ -440,11 +440,6 @@ void chip8::cycle() {
 	}
 }
 
-void chip8::updateInput(unsigned char buttonPressed) {
-	for (int i = 0; i < 16; i++) {
-		key[i] = false;
-	}
-	if (buttonPressed != 0xFF) {
-		key[buttonPressed] = true;
-	}
+void chip8::updateInput(int buttonPressed) {
+	key[buttonPressed] = true;
 }

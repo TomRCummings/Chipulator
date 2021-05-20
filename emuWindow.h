@@ -11,16 +11,24 @@ class emuWindow {
 	SDL_Renderer* renderer = NULL;
 	//Displayed texture
 	SDL_Texture* texture = NULL;
+	//Quit flag
+	bool quit = false;
 
 public:
-	//returns pointer to window object
+	//Returns pointer to window object
 	SDL_Window* getWindow();
-	//returns pointer to renderer object
+	//Returns pointer to renderer object
 	SDL_Renderer* getRenderer();
-	//returns pointer to texture object
+	//Returns pointer to texture object
 	SDL_Texture* getTexture();
-	//initializes window
+	//Initializes window
 	bool initialize(int width, int height);
-	//write pixel data to texture
+	//Write pixel data to texture
 	void drawScreen(unsigned char* screenData);
+	//Return the quit flag
+	bool getQuitFlag();
+	//Set the quit flag
+	void setQuitFlag(bool setter);
+	//Destroys the pointers to SDL components
+	void close();
 };

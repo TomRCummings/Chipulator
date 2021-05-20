@@ -59,12 +59,30 @@ void emuWindow::drawScreen(unsigned char* screenData) {
 			rect.w = pixelWidth;
 			rect.h = pixelHeight;
 
-			INFO << "Rendering rect at pos (" << rect.x << ", " << rect.y << ") with pixel loc (" << (rect.x/pixelWidth) << ", " << (rect.y/pixelHeight) << ")";
-			INFO << "i equals " << i;
+			//INFO << "Rendering rect at pos (" << rect.x << ", " << rect.y << ") with pixel loc (" << (rect.x/pixelWidth) << ", " << (rect.y/pixelHeight) << ")";
+			//INFO << "i equals " << i;
 			
 			SDL_RenderFillRect(renderer, &rect);
 		}
 	}
 	SDL_RenderPresent(renderer);
 	SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0x0);
+}
+
+bool emuWindow::getQuitFlag() {
+	return quit;
+}
+
+void emuWindow::setQuitFlag(bool setter) {
+	quit = setter;
+}
+
+void emuWindow::close() {
+	SDL_DestroyRenderer(renderer);
+	renderer = NULL;
+
+	SDL_DestroyWindow(window);
+	window = NULL;
+
+	SDL_Quit();
 }
