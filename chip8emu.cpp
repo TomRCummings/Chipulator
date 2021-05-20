@@ -1,14 +1,16 @@
 #include "chip8.h"
 #include "logger.h"
+#include "emuWindow.h"
 #include <iostream>
 #include <stdio.h>
 #include <fstream>
 #include <string>
 #include <Windows.h>
+#include <SDL.h>
 #include <chrono>
 
-const int nScreenWidth = 64;
-const int nScreenHeight = 32;
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 320;
 
 const float updateRate = 60;
 const float cpuRate = 600;
@@ -23,22 +25,20 @@ std::chrono::duration<float, std::milli> accumulator{};
 
 chip8 theChip8;
 
+emuWindow mainWindow;
+
 void saveChip8State(chip8 machine);
 void readFromRom(std::string filename, unsigned char* dataBuffer, size_t fileSize);
 void printScreenToConsole(unsigned char* screenBuffer, wchar_t* consoleBuffer);
 unsigned char getInput();
 
-int main() {
+int main( int argc, char* args[]) {
+	mainWindow.initialize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
 	INFO << "Main() started";
 
-	//Create screen buffer
-	wchar_t* window = new wchar_t[nScreenWidth * nScreenHeight];
-	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	SetConsoleActiveScreenBuffer(hConsole);
-	DWORD dwBytesWritten = 0;
-
 	theChip8.initialize();
-	std::string romFilePath = "C:/Users/Ryan/Documents/Projects/chip8emu/ROMS/cavern.ch8";
+	std::string romFilePath = "C:/Users/Ryan/Documents/Projects/chip8emu/ROMS/heart_monitor.ch8";
 	//Max number of bytes in a Chip-8 ROM
 	const size_t fileSize = 3586;
 	//Create program buffer
@@ -64,9 +64,8 @@ int main() {
 		if (countCPUCyclesForDraw >= cpuTicksTilUpdate) {
 			if (theChip8.getDrawFlag()) {
 				std::cout << std::string(50, '\n');
-				printScreenToConsole(theChip8.getScreen(), window);
+				mainWindow.drawScreen(theChip8.getScreen());
 				theChip8.setDrawFlag(false);
-				WriteConsoleOutputCharacterW(hConsole, window, nScreenWidth * nScreenHeight, { 0,0 }, &dwBytesWritten);
 			}
 			theChip8.decrementTimers();
 			theChip8.updateInput(getInput());
