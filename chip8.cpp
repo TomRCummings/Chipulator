@@ -115,14 +115,15 @@ void chip8::cycle() {
 	case 0xD000: //0xDxyn: Display n-byte sprite at (register x, register y), starting at memory location I
 		x = V[(opcode & 0x0F00) >> 8];
 		y = V[(opcode & 0x00F0) >> 4];
+		V[0xF] = 0;
 		for (int i = 0; i < (opcode & 0x000F); i++) {
 			pixel = memory[I + i];
 			for (int j = 0; j < 8; j++) {
 				if ((pixel & (0x80 >> j)) != 0) {
-					if (screen[(x + j + ((y + i) * 64)) % (64 * 32)] == 1) {
+					if (screen[(((x + j) % 64) + ((y + i) * 64)) % (64 * 32)] == 1) {
 						V[0xF] = 1;
 					}
-					screen[(x + j + ((y + i) * 64)) % (64 * 32)] ^= 1;
+					screen[(((x + j) % 64) + ((y + i) * 64)) % (64 * 32)] ^= 1;
 				}
 			}
 		}
@@ -133,8 +134,8 @@ void chip8::cycle() {
 		break;
 	case 0xE000:
 		switch (opcode & 0x00FF) {
-		case 0x009E: //0xEx9E: Skip next instruction if x key is pressed
-			if (key[(opcode & 0x0F00) >> 8]) {
+		case 0x009E: //0xEx9E: Skip next instruction if the key in register x is pressed
+			if (key[V[(opcode & 0x0F00) >> 8]]) {
 				pc += 4;
 				INFO << opcode << ": Key was pressed, skipped an instruction.";
 				INFO << "PC at " << pc;
@@ -149,8 +150,8 @@ void chip8::cycle() {
 			}
 
 			break;
-		case 0x00A1: //0xExA1: Skip next instruction if x key is not pressed
-			if (!key[(opcode & 0x0F00) >> 8]) {
+		case 0x00A1: //0xExA1: Skip next instruction if the key in register x is not pressed
+			if (!key[V[(opcode & 0x0F00) >> 8]]) {
 				pc += 4;
 				INFO << opcode << ": Key was not pressed, skipped an instruction.";
 				INFO << "PC at " << pc;

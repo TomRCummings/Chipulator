@@ -1,5 +1,61 @@
 #include "emuWindow.h"
 
+//WinAPI button IDs
+enum buttonIDs { loadRomID, resetID, exitID, controlsID, screenColorsID, beepSoundID, aboutID };
+
+//WinAPI menu objects
+static HMENU winMenuBar = NULL;
+static HMENU winFile = NULL;
+static HMENU winGraphics = NULL;
+static HMENU winSound = NULL;
+static HMENU winHelp = NULL;
+
+HWND emuWindow::getWindowHandle() {
+	//SDL system dependant window info structure
+	SDL_SysWMinfo windowInfo;
+	SDL_VERSION(&windowInfo.version);
+
+	//Retrieve the WinAPI window handle
+	if (!SDL_GetWindowWMInfo(window, &windowInfo)) {
+		return NULL;
+		ERRORLOG << "Not able to get window handle from WinAPI.";
+	}
+	else {
+		return windowInfo.info.win.window;
+	}
+}
+
+void emuWindow::readyMenus(HWND winWindowRef) {
+	winMenuBar = CreateMenu();
+	winFile = CreateMenu();
+	winGraphics = CreateMenu();
+	winSound = CreateMenu();
+	winHelp = CreateMenu();
+
+	//Build menu bar
+	AppendMenu(winMenuBar, MF_POPUP, (UINT_PTR)winFile, "File");
+	AppendMenu(winMenuBar, MF_POPUP, (UINT_PTR)winGraphics, "Graphics");
+	AppendMenu(winMenuBar, MF_POPUP, (UINT_PTR)winSound, "Sound");
+	AppendMenu(winMenuBar, MF_POPUP, (UINT_PTR)winHelp, "Help");
+
+	//Build "File" menu
+	AppendMenu(winFile, MF_STRING, loadRomID, "Load ROM");
+	AppendMenu(winFile, MF_STRING, resetID, "Reset");
+	AppendMenu(winFile, MF_STRING, exitID, "Exit");
+
+	//Build "Graphics" menu
+	AppendMenu(winGraphics, MF_STRING, screenColorsID, "Screen Colors");
+
+	//Build "Sound" menu
+	AppendMenu(winSound, MF_STRING, beepSoundID, "Beep Sound");
+
+	//Build "About" menu
+	AppendMenu(winHelp, MF_STRING, aboutID, "About");
+
+	//Attach built menu bar to window
+	SetMenu(winWindowRef, winMenuBar);
+}
+
 SDL_Window* emuWindow::getWindow() {
 	return window;
 }
@@ -20,7 +76,7 @@ bool emuWindow::initialize(int width, int height) {
 	}
 	else {
 		INFO << "SDL initialized.";
-		window = SDL_CreateWindow("Chip-8 Emu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+		window = SDL_CreateWindow("Chip-8 Emu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, (SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
 		if (window == NULL) {
 			ERRORLOG << "Window counld not be created! SDL error:" << SDL_GetError();
 			initialized = false;
@@ -37,6 +93,10 @@ bool emuWindow::initialize(int width, int height) {
 				SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0x0);
 			}
 		}
+
+		HWND windowHandle = getWindowHandle();
+		readyMenus(windowHandle);
+
 	}
 	return initialized;
 }
@@ -49,7 +109,7 @@ void emuWindow::drawScreen(unsigned char* screenData) {
 	const int pixelWidth = windowWidth / 64;
 	const int pixelHeight = windowHeight / 32;
 
-	SDL_SetRenderDrawColor(renderer, 0x33, 0xFF, 0x00, 0xFF);
+	SDL_SetRenderDrawColor(renderer, pOnColor[0], pOnColor[1], pOnColor[2], 0xFF);
 
 	for (int i = 0; i < 2048; i++) {
 		if (screenData[i] != 0) {
@@ -58,15 +118,38 @@ void emuWindow::drawScreen(unsigned char* screenData) {
 			rect.x = (i - ((i / 64) * 64))*pixelWidth;
 			rect.w = pixelWidth;
 			rect.h = pixelHeight;
-
-			//INFO << "Rendering rect at pos (" << rect.x << ", " << rect.y << ") with pixel loc (" << (rect.x/pixelWidth) << ", " << (rect.y/pixelHeight) << ")";
-			//INFO << "i equals " << i;
 			
 			SDL_RenderFillRect(renderer, &rect);
 		}
 	}
 	SDL_RenderPresent(renderer);
-	SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0x0);
+	SDL_SetRenderDrawColor(renderer, pOnColor[0], pOnColor[1], pOnColor[2], 0x0);
+}
+
+std::string emuWindow::openFileDialog(){
+	OPENFILENAME ofn;
+	char szFile[260];
+	HWND windowHandle;
+	HANDLE fileHandle;
+
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = getWindowHandle();
+	ofn.lpstrFile = szFile;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.nFilterIndex = 0;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = NULL;
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	if (GetOpenFileName(&ofn) == TRUE) {
+		return ofn.lpstrFile;
+	}
+	else {
+		return nullptr;
+	}
 }
 
 bool emuWindow::getQuitFlag() {
@@ -85,4 +168,14 @@ void emuWindow::close() {
 	window = NULL;
 
 	SDL_Quit();
+}
+
+void emuWindow::changeScreenColors(Uint8 pOffR, Uint8 pOffG, Uint8 pOffB, Uint8 pOnR, Uint8 pOnG, Uint8 pOnB) {
+	pOffColor[0] = pOffR;
+	pOffColor[1] = pOffG;
+	pOffColor[2] = pOffB;
+
+	pOnColor[0] = pOnR;
+	pOnColor[1] = pOnG;
+	pOnColor[2] = pOnB;
 }

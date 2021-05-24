@@ -9,6 +9,9 @@
 #include "logger.h"
 #include "emuWindow.h"
 
+//WinAPI button IDs
+const enum buttonIDs { loadRomID, resetID, exitID, controlsID, screenColorsID, beepSoundID, aboutID };
+
 //Keybindings
 const int ZERO = SDLK_0;
 const int ONE = SDLK_1;
@@ -33,7 +36,7 @@ const int SCREEN_HEIGHT = 320;
 
 //Timing constants
 const float updateRate = 60;
-const float cpuRate = 600;
+const float cpuRate = 800;
 const float cpuTicksTilUpdate = cpuRate / updateRate;
 const float msPerTick = (1.0 / cpuRate) * 1000.0;
 
@@ -45,11 +48,16 @@ float countCPUCyclesForDraw = 0;
 std::chrono::time_point<std::chrono::steady_clock> lastTime = std::chrono::steady_clock::now();
 std::chrono::duration<float, std::milli> accumulator{};
 
+//Chip-8 emulation core class
 chip8 theChip8;
 
+//Window handling class
 emuWindow mainWindow;
 
+//Save state function (needs work!)
 void saveChip8State(chip8 machine);
+
+//Load ROM function
 void readFromRom(std::string filename, unsigned char* dataBuffer, size_t fileSize);
 
 int main( int argc, char* args[]) {
@@ -59,11 +67,13 @@ int main( int argc, char* args[]) {
 
 	//Event holder
 	SDL_Event e;
+	//Allow event holder to consume events from Windows
+	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 
 	INFO << "Main() started";
 
 	theChip8.initialize();
-	std::string romFilePath = "C:/Users/Ryan/Documents/Projects/chip8emu/ROMS/hi_lo.ch8";
+	std::string romFilePath = "C:/Users/Ryan/Documents/Projects/chip8emu/ROMS/Pong.ch8";
 	//Max number of bytes in a Chip-8 ROM
 	const size_t fileSize = 3586;
 	//Create program buffer
@@ -73,6 +83,12 @@ int main( int argc, char* args[]) {
 	//saveChip8State(theChip8);
 
 	for (;;) {
+
+		//Handle window closure
+		if (mainWindow.getQuitFlag()) {
+			mainWindow.close();
+			break;
+		}
 
 		//Handle input using SDL event handler
 		while (SDL_PollEvent(&e) > 0) {
@@ -135,6 +151,29 @@ int main( int argc, char* args[]) {
 				default:
 					//INFO << "key not bound";
 					break;
+				}
+				break;
+			case SDL_SYSWMEVENT:
+				if (e.syswm.msg->msg.win.msg == WM_COMMAND) {
+					if (LOWORD(e.syswm.msg->msg.win.wParam) == exitID) {
+						mainWindow.setQuitFlag(true);
+					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == loadRomID) {
+						//Open and get string from file choose dialog
+						romFilePath = mainWindow.openFileDialog();
+						//Re-initialize Chip-8
+						theChip8.initialize();
+						//Read ROM from file
+						readFromRom(romFilePath, dataBuffer, fileSize);
+						//Load ROM to Chip-8
+						theChip8.loadROM(dataBuffer);
+					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == resetID) {
+						//Re-initialize Chip-8
+						theChip8.initialize();
+						//Load ROM to Chip-8
+						theChip8.loadROM(dataBuffer);
+					}
 				}
 				break;
 			/*
@@ -223,10 +262,6 @@ int main( int argc, char* args[]) {
 			countCPUCyclesForDraw = 0;
 		}
 		lastTime = std::chrono::steady_clock::now();
-		if (mainWindow.getQuitFlag()) {
-			mainWindow.close();
-			break;
-		}
 	}
 	return 0;
 }
