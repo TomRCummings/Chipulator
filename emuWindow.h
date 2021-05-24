@@ -24,6 +24,9 @@ class emuWindow {
 	//Pixel on color array (r,g,b)
 	Uint8 pOnColor[3] = { 0xFF, 0xFF, 0xFF };
 
+	//Helper for changing screen colors
+	void changeScreenColors(Uint8 pOffR, Uint8 pOffG, Uint8 pOffB, Uint8 pOnR, Uint8 pOnG, Uint8 pOnB);
+
 	//Returns WinAPI window handle
 	HWND getWindowHandle();
 	//Set up WinAPI drop-down menus
@@ -48,5 +51,9 @@ public:
 	void setQuitFlag(bool setter);
 	//Destroys the pointers to SDL components
 	void close();
-	void changeScreenColors(Uint8 pOffR, Uint8 pOffG, Uint8 pOffB, Uint8 pOnR, Uint8 pOnG, Uint8 pOnB);
+	//Change screen colors based on preset ID
+	//(ID defined in button IDs and colors defined at top of definition file)
+	void changeScreenByID(int buttonID);
+	//Change screen colors via the WinAPI color picker
+	void changeScreenColorCustom(bool pixel);
 };

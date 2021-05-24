@@ -10,7 +10,7 @@
 #include "emuWindow.h"
 
 //WinAPI button IDs
-const enum buttonIDs { loadRomID, resetID, exitID, controlsID, screenColorsID, beepSoundID, aboutID };
+enum buttonIDs { loadRomID, resetID, exitID, controlsID, greenPhosphorID, amberPhosphorID, whiteOnBlackID, blackOnWhiteID, customColorPixelID, customColorBackID, beepSoundID, aboutID };
 
 //Keybindings
 const int ZERO = SDLK_0;
@@ -173,6 +173,16 @@ int main( int argc, char* args[]) {
 						theChip8.initialize();
 						//Load ROM to Chip-8
 						theChip8.loadROM(dataBuffer);
+					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == greenPhosphorID || LOWORD(e.syswm.msg->msg.win.wParam) == amberPhosphorID || LOWORD(e.syswm.msg->msg.win.wParam) == whiteOnBlackID || LOWORD(e.syswm.msg->msg.win.wParam) == blackOnWhiteID) {
+						int colorID = LOWORD(e.syswm.msg->msg.win.wParam);
+						mainWindow.changeScreenByID(colorID);
+					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == customColorPixelID) {
+						mainWindow.changeScreenColorCustom(true);
+					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == customColorBackID) {
+						mainWindow.changeScreenColorCustom(false);
 					}
 				}
 				break;

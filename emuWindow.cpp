@@ -1,12 +1,19 @@
 #include "emuWindow.h"
 
+//Screen color options
+const Uint8 greenPhosphor[6] = { 0,0,0,51,255,0 };
+const Uint8 amberPhosphor[6] = { 0,0,0,255,176,0 };
+const Uint8 whiteOnBlack[6] = { 0,0,0,255,255,255 };
+const Uint8 blackOnWhite[6] = { 255,255,255,0,0,0 };
+
 //WinAPI button IDs
-enum buttonIDs { loadRomID, resetID, exitID, controlsID, screenColorsID, beepSoundID, aboutID };
+enum buttonIDs { loadRomID, resetID, exitID, controlsID, greenPhosphorID, amberPhosphorID, whiteOnBlackID, blackOnWhiteID, customColorPixelID, customColorBackID, beepSoundID, aboutID };
 
 //WinAPI menu objects
 static HMENU winMenuBar = NULL;
 static HMENU winFile = NULL;
 static HMENU winGraphics = NULL;
+static HMENU winScreenColors = NULL;
 static HMENU winSound = NULL;
 static HMENU winHelp = NULL;
 
@@ -29,6 +36,7 @@ void emuWindow::readyMenus(HWND winWindowRef) {
 	winMenuBar = CreateMenu();
 	winFile = CreateMenu();
 	winGraphics = CreateMenu();
+	winScreenColors = CreateMenu();
 	winSound = CreateMenu();
 	winHelp = CreateMenu();
 
@@ -44,7 +52,13 @@ void emuWindow::readyMenus(HWND winWindowRef) {
 	AppendMenu(winFile, MF_STRING, exitID, "Exit");
 
 	//Build "Graphics" menu
-	AppendMenu(winGraphics, MF_STRING, screenColorsID, "Screen Colors");
+	AppendMenu(winGraphics, MF_POPUP, (UINT_PTR)winScreenColors, "Screen Colors");
+	AppendMenu(winScreenColors, MF_STRING, greenPhosphorID, "Green Phosphor");
+	AppendMenu(winScreenColors, MF_STRING, amberPhosphorID, "Amber Phosphor");
+	AppendMenu(winScreenColors, MF_STRING, whiteOnBlackID, "White On Black");
+	AppendMenu(winScreenColors, MF_STRING, blackOnWhiteID, "Black On White");
+	AppendMenu(winScreenColors, MF_STRING, customColorPixelID, "Custom Colors - Pixel");
+	AppendMenu(winScreenColors, MF_STRING, customColorBackID, "Custom Colors - Background");
 
 	//Build "Sound" menu
 	AppendMenu(winSound, MF_STRING, beepSoundID, "Beep Sound");
@@ -109,7 +123,7 @@ void emuWindow::drawScreen(unsigned char* screenData) {
 	const int pixelWidth = windowWidth / 64;
 	const int pixelHeight = windowHeight / 32;
 
-	SDL_SetRenderDrawColor(renderer, pOnColor[0], pOnColor[1], pOnColor[2], 0xFF);
+	SDL_SetRenderDrawColor(renderer, pOnColor[0], pOnColor[1], pOnColor[2], 0x0);
 
 	for (int i = 0; i < 2048; i++) {
 		if (screenData[i] != 0) {
@@ -123,7 +137,7 @@ void emuWindow::drawScreen(unsigned char* screenData) {
 		}
 	}
 	SDL_RenderPresent(renderer);
-	SDL_SetRenderDrawColor(renderer, pOnColor[0], pOnColor[1], pOnColor[2], 0x0);
+	SDL_SetRenderDrawColor(renderer, pOffColor[0], pOffColor[1], pOffColor[2], 0x0);
 }
 
 std::string emuWindow::openFileDialog(){
@@ -178,4 +192,41 @@ void emuWindow::changeScreenColors(Uint8 pOffR, Uint8 pOffG, Uint8 pOffB, Uint8 
 	pOnColor[0] = pOnR;
 	pOnColor[1] = pOnG;
 	pOnColor[2] = pOnB;
+}
+
+void emuWindow::changeScreenByID(int buttonID) {
+	switch (buttonID) {
+	case amberPhosphorID:
+		changeScreenColors(amberPhosphor[0], amberPhosphor[1], amberPhosphor[2], amberPhosphor[3], amberPhosphor[4], amberPhosphor[5]);
+		break;
+	case greenPhosphorID:
+		changeScreenColors(greenPhosphor[0], greenPhosphor[1], greenPhosphor[2], greenPhosphor[3], greenPhosphor[4], greenPhosphor[5]);
+		break;
+	case blackOnWhiteID:
+		changeScreenColors(blackOnWhite[0], blackOnWhite[1], blackOnWhite[2], blackOnWhite[3], blackOnWhite[4], blackOnWhite[5]);
+		break;
+	case whiteOnBlackID:
+		changeScreenColors(whiteOnBlack[0], whiteOnBlack[1], whiteOnBlack[2], whiteOnBlack[3], whiteOnBlack[4], whiteOnBlack[5]);
+		break;
+	}
+}
+
+void emuWindow::changeScreenColorCustom(bool pixel) {
+	CHOOSECOLOR cc;
+	static COLORREF crCustClr[16];
+
+	ZeroMemory(&cc, sizeof(cc));
+	cc.lStructSize = sizeof(cc);
+	cc.hwndOwner = getWindowHandle();
+	cc.lpCustColors = (LPDWORD)crCustClr;
+	cc.rgbResult = RGB(0, 255, 0);
+	cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+	ChooseColor(&cc);
+
+	if (pixel) {
+		changeScreenColors(pOffColor[0], pOffColor[1], pOffColor[2], GetRValue(cc.rgbResult), GetGValue(cc.rgbResult), GetBValue(cc.rgbResult));
+	}
+	else {
+		changeScreenColors(GetRValue(cc.rgbResult), GetGValue(cc.rgbResult), GetBValue(cc.rgbResult), pOnColor[0], pOnColor[1], pOnColor[2]);
+	}
 }
