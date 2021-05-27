@@ -8,9 +8,10 @@
 #include "chip8.h"
 #include "logger.h"
 #include "emuWindow.h"
+#include "beeper.h"
 
 //WinAPI button IDs
-enum buttonIDs { loadRomID, resetID, exitID, controlsID, greenPhosphorID, amberPhosphorID, whiteOnBlackID, blackOnWhiteID, customColorPixelID, customColorBackID, beepSoundID, aboutID };
+enum buttonIDs { loadRomID, resetID, exitID, controlsID, greenPhosphorID, amberPhosphorID, whiteOnBlackID, blackOnWhiteID, customColorPixelID, customColorBackID, sineWaveID, squareWaveID, waveToneID, muteSoundID, aboutID };
 
 //Keybindings
 const int ZERO = SDLK_0;
@@ -52,7 +53,10 @@ std::chrono::duration<float, std::milli> accumulator{};
 chip8 theChip8;
 
 //Window handling class
-emuWindow mainWindow;
+EmuWindow mainWindow;
+
+//Sound handling class
+Beeper soundMaker;
 
 //Save state function (needs work!)
 void saveChip8State(chip8 machine);
@@ -64,6 +68,7 @@ int main( int argc, char* args[]) {
 
 	//SDL initialization
 	mainWindow.initialize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	soundMaker.initializeAudio();
 
 	//Event holder
 	SDL_Event e;
@@ -184,6 +189,15 @@ int main( int argc, char* args[]) {
 					else if (LOWORD(e.syswm.msg->msg.win.wParam) == customColorBackID) {
 						mainWindow.changeScreenColorCustom(false);
 					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == sineWaveID) {
+						soundMaker.setWaveType(0);
+					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == squareWaveID) {
+						soundMaker.setWaveType(1);
+					}
+					else if (LOWORD(e.syswm.msg->msg.win.wParam) == muteSoundID) {
+						soundMaker.setMuteOn();
+					}
 				}
 				break;
 			/*
@@ -267,6 +281,12 @@ int main( int argc, char* args[]) {
 			if (theChip8.getDrawFlag()) {
 				mainWindow.drawScreen(theChip8.getScreen());
 				theChip8.setDrawFlag(false);
+			}
+			if (theChip8.getSoundTimer() > 0) {
+				soundMaker.setSoundOn(true);
+			}
+			else {
+				soundMaker.setSoundOn(false);
 			}
 			theChip8.decrementTimers();
 			countCPUCyclesForDraw = 0;

@@ -10,6 +10,6 @@ ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
-add_executable(chip8emu chip8emu.cpp chip8.cpp chip8.h "logger.h" "logger.cpp" "emuWindow.h" "emuWindow.cpp")
+add_executable(chip8emu chip8emu.cpp chip8.cpp chip8.h "logger.h" "logger.cpp" "emuWindow.h" "emuWindow.cpp" "beeper.h" "beeper.cpp")
 
 target_link_libraries(chip8emu PRIVATE Boost::log_setup Boost::log ${SDL2_LIBRARY}/SDL2main.lib ${SDL2_LIBRARY}/SDL2.lib )

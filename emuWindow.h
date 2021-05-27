@@ -7,9 +7,7 @@
 #include <Commdlg.h>
 #include "logger.h"
 
-class emuWindow {
-	//UI IDs
-	const enum uiID {fileMID, };
+class EmuWindow {
 	//Window to render to
 	SDL_Window* window = NULL;
 	//Window renderer

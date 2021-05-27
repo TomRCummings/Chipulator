@@ -7,7 +7,7 @@ const Uint8 whiteOnBlack[6] = { 0,0,0,255,255,255 };
 const Uint8 blackOnWhite[6] = { 255,255,255,0,0,0 };
 
 //WinAPI button IDs
-enum buttonIDs { loadRomID, resetID, exitID, controlsID, greenPhosphorID, amberPhosphorID, whiteOnBlackID, blackOnWhiteID, customColorPixelID, customColorBackID, beepSoundID, aboutID };
+enum buttonIDs { loadRomID, resetID, exitID, controlsID, greenPhosphorID, amberPhosphorID, whiteOnBlackID, blackOnWhiteID, customColorPixelID, customColorBackID, sineWaveID, squareWaveID, waveToneID, muteSoundID, aboutID };
 
 //WinAPI menu objects
 static HMENU winMenuBar = NULL;
@@ -15,9 +15,10 @@ static HMENU winFile = NULL;
 static HMENU winGraphics = NULL;
 static HMENU winScreenColors = NULL;
 static HMENU winSound = NULL;
+static HMENU winWaveType = NULL;
 static HMENU winHelp = NULL;
 
-HWND emuWindow::getWindowHandle() {
+HWND EmuWindow::getWindowHandle() {
 	//SDL system dependant window info structure
 	SDL_SysWMinfo windowInfo;
 	SDL_VERSION(&windowInfo.version);
@@ -32,12 +33,13 @@ HWND emuWindow::getWindowHandle() {
 	}
 }
 
-void emuWindow::readyMenus(HWND winWindowRef) {
+void EmuWindow::readyMenus(HWND winWindowRef) {
 	winMenuBar = CreateMenu();
 	winFile = CreateMenu();
 	winGraphics = CreateMenu();
 	winScreenColors = CreateMenu();
 	winSound = CreateMenu();
+	winWaveType = CreateMenu();
 	winHelp = CreateMenu();
 
 	//Build menu bar
@@ -61,7 +63,11 @@ void emuWindow::readyMenus(HWND winWindowRef) {
 	AppendMenu(winScreenColors, MF_STRING, customColorBackID, "Custom Colors - Background");
 
 	//Build "Sound" menu
-	AppendMenu(winSound, MF_STRING, beepSoundID, "Beep Sound");
+	AppendMenu(winSound, MF_POPUP, (UINT_PTR)winWaveType, "Wave Type");
+	AppendMenu(winWaveType, MF_STRING, sineWaveID, "Sine Wave");
+	AppendMenu(winWaveType, MF_STRING, squareWaveID, "Square Wave");
+	//AppendMenu(winSound, MF_STRING, waveToneID, "Wave Tone");
+	AppendMenu(winSound, MF_STRING, muteSoundID, "Mute Sound");
 
 	//Build "About" menu
 	AppendMenu(winHelp, MF_STRING, aboutID, "About");
@@ -70,21 +76,21 @@ void emuWindow::readyMenus(HWND winWindowRef) {
 	SetMenu(winWindowRef, winMenuBar);
 }
 
-SDL_Window* emuWindow::getWindow() {
+SDL_Window* EmuWindow::getWindow() {
 	return window;
 }
 
-SDL_Renderer* emuWindow::getRenderer() {
+SDL_Renderer* EmuWindow::getRenderer() {
 	return renderer;
 }
 
-SDL_Texture* emuWindow::getTexture() {
+SDL_Texture* EmuWindow::getTexture() {
 	return texture;
 }
 
-bool emuWindow::initialize(int width, int height) {
+bool EmuWindow::initialize(int width, int height) {
 	bool initialized = true;
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		ERRORLOG << "SDL could not be initialized! SDL error: " << SDL_GetError();
 		initialized = true;
 	}
@@ -115,7 +121,7 @@ bool emuWindow::initialize(int width, int height) {
 	return initialized;
 }
 
-void emuWindow::drawScreen(unsigned char* screenData) {
+void EmuWindow::drawScreen(unsigned char* screenData) {
 	SDL_RenderClear(renderer);
 	int windowWidth = 0;
 	int windowHeight = 0;
@@ -140,7 +146,7 @@ void emuWindow::drawScreen(unsigned char* screenData) {
 	SDL_SetRenderDrawColor(renderer, pOffColor[0], pOffColor[1], pOffColor[2], 0x0);
 }
 
-std::string emuWindow::openFileDialog(){
+std::string EmuWindow::openFileDialog(){
 	OPENFILENAME ofn;
 	char szFile[260];
 	HWND windowHandle;
@@ -166,15 +172,15 @@ std::string emuWindow::openFileDialog(){
 	}
 }
 
-bool emuWindow::getQuitFlag() {
+bool EmuWindow::getQuitFlag() {
 	return quit;
 }
 
-void emuWindow::setQuitFlag(bool setter) {
+void EmuWindow::setQuitFlag(bool setter) {
 	quit = setter;
 }
 
-void emuWindow::close() {
+void EmuWindow::close() {
 	SDL_DestroyRenderer(renderer);
 	renderer = NULL;
 
@@ -184,7 +190,7 @@ void emuWindow::close() {
 	SDL_Quit();
 }
 
-void emuWindow::changeScreenColors(Uint8 pOffR, Uint8 pOffG, Uint8 pOffB, Uint8 pOnR, Uint8 pOnG, Uint8 pOnB) {
+void EmuWindow::changeScreenColors(Uint8 pOffR, Uint8 pOffG, Uint8 pOffB, Uint8 pOnR, Uint8 pOnG, Uint8 pOnB) {
 	pOffColor[0] = pOffR;
 	pOffColor[1] = pOffG;
 	pOffColor[2] = pOffB;
@@ -194,7 +200,7 @@ void emuWindow::changeScreenColors(Uint8 pOffR, Uint8 pOffG, Uint8 pOffB, Uint8 
 	pOnColor[2] = pOnB;
 }
 
-void emuWindow::changeScreenByID(int buttonID) {
+void EmuWindow::changeScreenByID(int buttonID) {
 	switch (buttonID) {
 	case amberPhosphorID:
 		changeScreenColors(amberPhosphor[0], amberPhosphor[1], amberPhosphor[2], amberPhosphor[3], amberPhosphor[4], amberPhosphor[5]);
@@ -211,7 +217,7 @@ void emuWindow::changeScreenByID(int buttonID) {
 	}
 }
 
-void emuWindow::changeScreenColorCustom(bool pixel) {
+void EmuWindow::changeScreenColorCustom(bool pixel) {
 	CHOOSECOLOR cc;
 	static COLORREF crCustClr[16];
 
