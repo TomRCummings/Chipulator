@@ -3,9 +3,24 @@
 #include <logger.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <thread>
+#include <chrono>
 #include <time.h>
+#include <wx/event.h>
+
+wxDECLARE_EVENT(DRAW_SCREEN, wxCommandEvent);
 
 class chip8 {
+	//CPU frequency
+	float cpuRate = 800;
+	//Display and timer update rate
+	float updateRate = 60;
+	//Flag to tell if CPU is cycling
+	bool isRunning = false;
+	//Flag to tell CPU to cycle continuously
+	bool shouldLoop = false;
+	//Thread to contain CPU cycling
+	std::thread cpuThread;
 	//The current opcode to be executed
 	unsigned short opcode;
 	//4KB memory array
@@ -64,5 +79,8 @@ public:
 	void setDrawFlag(bool setter);
 	void decrementTimers();
 	void cycle();
+	void runCycle(bool setLoop = true);
+	void stopCycle(bool shouldWait = true);
+	bool isCPURunning();
 	void updateInput(int buttonPressed);
 };
