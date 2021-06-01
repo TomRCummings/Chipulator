@@ -140,6 +140,7 @@ void cMain::onReset(wxCommandEvent& evt) {
 }
 
 void cMain::onExit(wxCommandEvent& evt) {
+	theChip8.stopCycle();
 	this->Close();
 }
 
