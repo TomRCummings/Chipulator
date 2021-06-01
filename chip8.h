@@ -66,6 +66,7 @@ class chip8 {
 public:
 	void initialize();
 	void loadROM(unsigned char* program);
+	void loadState(unsigned char* state);
 	unsigned char* getMemory();
 	unsigned char* getRegisters();
 	unsigned short getI();

@@ -35,6 +35,54 @@ void chip8::loadROM(unsigned char* program) {
 	}
 }
 
+void chip8::loadState(unsigned char* state) {
+	for (int i = 0; i < 6208; i++) {
+		if (i < 4096) {
+			memory[i] = state[i];
+		}
+		else if (i < 4112) {
+			V[i - 4096] = state[i];
+		}
+		else if (i == 4112) {
+			I = (unsigned short)state[i];
+		}
+		else if (i == 4113) {
+			I = I | (unsigned short)state[i];
+		}
+		else if (i == 4114) {
+			pc = (unsigned short)state[i];
+		}
+		else if (i == 4115) {
+			pc = pc | ((unsigned short)state[i] << 8);
+		}
+		else if (i < 4148) {
+			if ((i % 2) == 0) {
+				stack[(i - 4116) / 2] = (unsigned short)state[i];
+			}
+			else {
+				stack[(i - 4116) / 2] = stack[(i - 4116) / 2] | ((unsigned short)state[i] << 8);
+			}
+		}
+		else if (i < 4150) {
+			if (i == 4149) {
+				stackPointer = (unsigned short)state[i];
+			}
+			else {
+				stackPointer = stackPointer | ((unsigned short)state[i] << 8);
+			}
+		}
+		else if (i < 4152) {
+			soundTimer = soundTimer | state[i];
+		}
+		else if (i < 4154) {
+			delayTimer = delayTimer | state[i];
+		}
+		else {
+			screen[i - 4154] = state[i];
+		}
+	}
+}
+
 unsigned char* chip8::getMemory() {
 	return memory;
 }

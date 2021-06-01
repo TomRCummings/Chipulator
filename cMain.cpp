@@ -1,5 +1,6 @@
 #include "cMain.h"
 
+//Keybindings
 const wxChar ZERO = '0';
 const wxChar ONE = '1';
 const wxChar TWO = '2';
@@ -18,9 +19,14 @@ const wxChar E = 69;
 const wxChar F = 70;
 
 wxBEGIN_EVENT_TABLE(cMain, wxFrame)
+	EVT_MENU_OPEN(cMain::onMenuOpen)
+	EVT_MENU_CLOSE(cMain::onMenuClose)
 	EVT_KEY_DOWN(cMain::onKeyDown)
 	EVT_MENU(openROMID, cMain::onOpenROM)
 	EVT_MENU(resetID, cMain::onReset)
+	EVT_MENU(pauseID, cMain::onPause)
+	EVT_MENU(saveStateID, cMain::onSaveState)
+	EVT_MENU(loadStateID, cMain::onLoadState)
 	EVT_MENU(exitID, cMain::onExit)
 	EVT_MENU(gPID, cMain::onChangeScreenColors)
 	EVT_MENU(aPID, cMain::onChangeScreenColors)
@@ -50,6 +56,11 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	m_pFile = new wxMenu();
 	m_pFile->Append(openROMID, _T("Open ROM"));
 	m_pFile->Append(resetID, _T("Reset"));
+	m_pFile->AppendSeparator();
+	m_pFile->AppendCheckItem(pauseID, _T("Pause"));
+	m_pFile->AppendSeparator();
+	m_pFile->Append(saveStateID, _T("Save State"));
+	m_pFile->Append(loadStateID, _T("Load State"));
 	m_pFile->AppendSeparator();
 	m_pFile->Append(exitID, _T("Exit"));
 
@@ -116,6 +127,19 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 cMain::~cMain() {
 }
 
+void cMain::onMenuOpen(wxMenuEvent& evt) {
+	if (theChip8.isCPURunning()) {
+		theChip8.stopCycle();
+		soundMaker.setSoundOn(false);
+	}
+}
+
+void cMain::onMenuClose(wxMenuEvent& evt) {
+	if (!theChip8.isCPURunning() && runChip8) {
+		theChip8.runCycle();
+	}
+}
+
 void cMain::onOpenROM(wxCommandEvent& evt) {
 
 	INFO << "Open ROM event called...";
@@ -133,10 +157,65 @@ void cMain::onOpenROM(wxCommandEvent& evt) {
 	INFO << "File path chosen: " << filePathString;
 
 	loadROM(filePathString);
+
+	runChip8 = true;
+	m_pFile->FindItem(pauseID)->Check(false);
 }
 
 void cMain::onReset(wxCommandEvent& evt) {
+	theChip8.initialize();
+	theChip8.loadROM(chip8ROM);
 
+	m_pFile->FindItem(pauseID)->Check(false);
+}
+
+void cMain::onPause(wxCommandEvent& evt) {
+	if (theChip8.isCPURunning()) {
+		theChip8.stopCycle();
+		runChip8 = false;
+	}
+	else {
+		theChip8.runCycle();
+		runChip8 = true;
+	}
+}
+
+void cMain::onSaveState(wxCommandEvent& evt) {
+	bool wasRunning = theChip8.isCPURunning();
+	if (wasRunning) {
+		theChip8.stopCycle();
+	}
+
+	wxFileDialog
+		saveFileDialog(this, _("Save Chip-8 state file"), "", "", "c8s files (*.c8s)|*.c8s",
+			 wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+	if (saveFileDialog.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+
+	std::string filePathString = saveFileDialog.GetPath().ToStdString();
+	saveChip8State(filePathString);
+
+	if (wasRunning) {
+		theChip8.runCycle();
+	}
+}
+
+void cMain::onLoadState(wxCommandEvent& evt) {
+	wxFileDialog
+		loadFileDialog(this, _("Load Chip-8 state file"), "", "", "c8s files (*.c8s)|*.c8s",
+			wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+	if (loadFileDialog.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+
+	std::string filePathString = loadFileDialog.GetPath().ToStdString();
+	loadChip8State(filePathString);
+
+	theChip8.setDrawFlag(true);
+	theChip8.runCycle();
 }
 
 void cMain::onExit(wxCommandEvent& evt) {
@@ -354,9 +433,9 @@ void cMain::loadROM(std::string filename) {
 	}
 }
 
-void cMain::saveChip8State() {
+void cMain::saveChip8State(std::string filename) {
 	std::ofstream file;
-	file.open("chip8state.c8state", std::ios::binary);
+	file.open(filename.c_str(), std::ios::binary);
 	unsigned char* machineMemory = theChip8.getMemory();
 	unsigned char* machineRegisters = theChip8.getRegisters();
 	unsigned short machineI = theChip8.getI();
@@ -367,15 +446,34 @@ void cMain::saveChip8State() {
 	unsigned short machineSP = theChip8.getStackPointer();
 	unsigned short machineDT = theChip8.getDelayTimer();
 	unsigned short machineST = theChip8.getSoundTimer();
+	unsigned char* machineScreen = theChip8.getScreen();
 	file.write((char*)&machineMemory[0], 4096);
 	file.write((char*)&machineRegisters[0], 16);
 	file.write((char*)&machineI, sizeof(machineI));
 	file.write((char*)&machinePC, sizeof(machinePC));
-	file.write((char*)&machineStack, sizeof(machineStack));
+	file.write((char*)&machineStack[0], 16*sizeof(machineI));
 	file.write((char*)&machineSP, sizeof(machineSP));
 	file.write((char*)&machineDT, sizeof(machineDT));
 	file.write((char*)&machineST, sizeof(machineST));
+	file.write((char*)&machineScreen[0], 2048);
 	file.close();
+	INFO << "Wrote state to file.";
+}
+
+void cMain::loadChip8State(std::string filename) {
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	unsigned char machineState[6208];
+	for (int i = 0; i < 6208; i++) {
+		machineState[i] = 0;
+	}
+
+	file.read((char*)&machineState[0], 6208);
+	file.close();
+
+	theChip8.stopCycle();
+	theChip8.initialize();
+	theChip8.loadState(machineState);
 }
 
 void cMain::drawScreen() {
@@ -403,4 +501,5 @@ void cMain::drawScreen() {
 	}
 	SDL_RenderPresent(sdlRenderer);
 	SDL_SetRenderDrawColor(sdlRenderer, bColor[0], bColor[1], bColor[2], 0x0);
+	theChip8.setDrawFlag(false);
 }

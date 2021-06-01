@@ -19,8 +19,13 @@ public:
 	explicit cMain();
 	~cMain();
 
+	void onMenuOpen(wxMenuEvent& evt);
+	void onMenuClose(wxMenuEvent& evt);
 	void onOpenROM(wxCommandEvent& evt);
 	void onReset(wxCommandEvent& evt);
+	void onPause(wxCommandEvent& evt);
+	void onSaveState(wxCommandEvent& evt);
+	void onLoadState(wxCommandEvent& evt);
 	void onExit(wxCommandEvent& evt);
 	void onChangeScreenColors(wxCommandEvent& evt);
 	void onChangeWaveType(wxCommandEvent& evt);
@@ -59,6 +64,7 @@ private:
 	Beeper soundMaker;
 
 	chip8 theChip8;
+	bool runChip8 = false;
 
 	size_t chip8ROMSize;
 	unsigned char chip8ROM[3584];
@@ -66,9 +72,11 @@ private:
 	//Load ROM helper
 	void loadROM(std::string filename);
 	//Save state helper
-	void saveChip8State();
+	void saveChip8State(std::string filename);
+	//Load state helper
+	void loadChip8State(std::string filemane);
 
 	void drawScreen();
 
-	enum eventIDs { openROMID, resetID, exitID, gPID, aPID, wOBID, bOWID, ccPixelID, ccBackID, sineID, squareID, noteID, muteID, aboutID };
+	enum eventIDs { openROMID, resetID, pauseID, resumeID, saveStateID, loadStateID, exitID, gPID, aPID, wOBID, bOWID, ccPixelID, ccBackID, sineID, squareID, noteID, muteID, aboutID };
 };
