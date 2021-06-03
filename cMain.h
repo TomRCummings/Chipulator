@@ -13,6 +13,7 @@
 #include "logger.h"
 #include "chip8.h"
 #include "beeper.h"
+#include "controlPicker.h"
 
 class cMain : public wxFrame {
 public:
@@ -31,6 +32,7 @@ public:
 	void onChangeWaveType(wxCommandEvent& evt);
 	void onChangeWaveNote(wxCommandEvent& evt);
 	void onMute(wxCommandEvent& evt);
+	void onChangeKeys(wxCommandEvent& evt);
 	void onAbout(wxCommandEvent& evt);
 	void onKeyDown(wxKeyEvent& evt);
 	void onIdle(wxIdleEvent& evt);
@@ -50,6 +52,7 @@ private:
 	wxMenu* m_pScreenColors = nullptr;
 	wxMenu* m_pSound = nullptr;
 	wxMenu* m_pWaveType = nullptr;
+	wxMenu* m_pControls = nullptr;
 	wxMenu* m_pHelp = nullptr;
 
 	//SDL window, handles graphics
@@ -61,22 +64,36 @@ private:
 	//Background color - black default
 	int bColor[3] = { 0, 0, 0 };
 
+	//SDL sound class
 	Beeper soundMaker;
 
+	//Chip-8 emulating class
 	chip8 theChip8;
+	//Keeps track of Chip-8 state for temporary pauses
 	bool runChip8 = false;
-
+	//Chip-8 rom size in bytes
 	size_t chip8ROMSize;
+	//Chip-8 rom array
 	unsigned char chip8ROM[3584];
 
+	//Default ROM directory
+	std::string defaultROMDir;
+	//Default save state directory
+	std::string defaultStateDir;
+	//Keybinding map (index of Chip-8 input as key, unicode value of key as value)
+	std::map<int, int> keybindings;
+
+	//Setting file helpers
+	void parseConfigFile();
 	//Load ROM helper
 	void loadROM(std::string filename);
 	//Save state helper
 	void saveChip8State(std::string filename);
 	//Load state helper
 	void loadChip8State(std::string filemane);
-
+	//Render helper
 	void drawScreen();
 
-	enum eventIDs { openROMID, resetID, pauseID, resumeID, saveStateID, loadStateID, exitID, gPID, aPID, wOBID, bOWID, ccPixelID, ccBackID, sineID, squareID, noteID, muteID, aboutID };
+	//wxEvent IDs
+	enum eventIDs { openROMID, resetID, pauseID, resumeID, saveStateID, loadStateID, exitID, gPID, aPID, wOBID, bOWID, ccPixelID, ccBackID, sineID, squareID, noteID, muteID, changeKeysID, aboutID };
 };

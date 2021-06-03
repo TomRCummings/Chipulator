@@ -12,6 +12,6 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${wxWidgets_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
-add_executable(chip8emu "cApp.h" "cApp.cpp" "cMain.h" "cMain.cpp" chip8.cpp chip8.h "logger.h" "logger.cpp"   "beeper.h" "beeper.cpp")
+add_executable(chip8emu "cApp.h" "cApp.cpp" "cMain.h" "cMain.cpp" chip8.cpp chip8.h "logger.h" "logger.cpp"   "beeper.h" "beeper.cpp" "controlPicker.cpp" "controlPicker.h")
 
 target_link_libraries(chip8emu PRIVATE Boost::log_setup Boost::log ${SDL2_LIBRARY}/SDL2main.lib ${SDL2_LIBRARY}/SDL2.lib ${wxWidgets_LIBRARIES})

@@ -1,23 +1,5 @@
 #include "cMain.h"
 
-//Keybindings
-const wxChar ZERO = '0';
-const wxChar ONE = '1';
-const wxChar TWO = '2';
-const wxChar THREE = '3';
-const wxChar FOUR = '4';
-const wxChar FIVE = '5';
-const wxChar SIX = '6';
-const wxChar SEVEN = '7';
-const wxChar EIGHT = '8';
-const wxChar NINE = '9';
-const wxChar A = 65;
-const wxChar B = 66;
-const wxChar C = 67;
-const wxChar D = 68;
-const wxChar E = 69;
-const wxChar F = 70;
-
 wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 	EVT_MENU_OPEN(cMain::onMenuOpen)
 	EVT_MENU_CLOSE(cMain::onMenuClose)
@@ -38,6 +20,7 @@ wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 	EVT_MENU(squareID, cMain::onChangeWaveType)
 	EVT_MENU(noteID, cMain::onChangeWaveNote)
 	EVT_MENU(muteID, cMain::onMute)
+	EVT_MENU(changeKeysID, cMain::onChangeKeys)
 	EVT_MENU(aboutID, cMain::onAbout)
 	EVT_IDLE(cMain::onIdle)
 wxEND_EVENT_TABLE()
@@ -83,6 +66,10 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	m_pSound->Append(noteID, _T("Change Note"));
 	m_pSound->AppendCheckItem(muteID, _T("Mute"));
 
+	//Create control menu
+	m_pControls = new wxMenu();
+	m_pControls->Append(changeKeysID, _T("Customize Controls"));
+
 	//Create help menu
 	m_pHelp = new wxMenu();
 	m_pHelp->Append(aboutID, _T("About"));
@@ -91,6 +78,7 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	m_pMenuBar->Append(m_pFile, _T("File"));
 	m_pMenuBar->Append(m_pGraphics, _T("Graphics"));
 	m_pMenuBar->Append(m_pSound, _T("Sound"));
+	m_pMenuBar->Append(m_pControls, _T("Controls"));
 	m_pMenuBar->Append(m_pHelp, _T("Help"));
 	SetMenuBar(m_pMenuBar);
 
@@ -116,12 +104,15 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	//Sound initialization
 	soundMaker.initializeAudio();
 
+	//Set minimum size for and show wxWidgets
 	this->SetMinSize(wxSize(640, 320));
-
 	Show();
 
-	lastTime = std::chrono::steady_clock::now();
+	//Load settings from config file
+	parseConfigFile();
 
+	//Set timer going
+	lastTime = std::chrono::steady_clock::now();
 }
 
 cMain::~cMain() {
@@ -132,12 +123,16 @@ void cMain::onMenuOpen(wxMenuEvent& evt) {
 		theChip8.stopCycle();
 		soundMaker.setSoundOn(false);
 	}
+
+	evt.Skip();
 }
 
 void cMain::onMenuClose(wxMenuEvent& evt) {
 	if (!theChip8.isCPURunning() && runChip8) {
 		theChip8.runCycle();
 	}
+
+	evt.Skip();
 }
 
 void cMain::onOpenROM(wxCommandEvent& evt) {
@@ -160,6 +155,8 @@ void cMain::onOpenROM(wxCommandEvent& evt) {
 
 	runChip8 = true;
 	m_pFile->FindItem(pauseID)->Check(false);
+
+	evt.Skip();
 }
 
 void cMain::onReset(wxCommandEvent& evt) {
@@ -167,6 +164,8 @@ void cMain::onReset(wxCommandEvent& evt) {
 	theChip8.loadROM(chip8ROM);
 
 	m_pFile->FindItem(pauseID)->Check(false);
+
+	evt.Skip();
 }
 
 void cMain::onPause(wxCommandEvent& evt) {
@@ -178,6 +177,8 @@ void cMain::onPause(wxCommandEvent& evt) {
 		theChip8.runCycle();
 		runChip8 = true;
 	}
+
+	evt.Skip();
 }
 
 void cMain::onSaveState(wxCommandEvent& evt) {
@@ -200,6 +201,8 @@ void cMain::onSaveState(wxCommandEvent& evt) {
 	if (wasRunning) {
 		theChip8.runCycle();
 	}
+
+	evt.Skip();
 }
 
 void cMain::onLoadState(wxCommandEvent& evt) {
@@ -216,11 +219,15 @@ void cMain::onLoadState(wxCommandEvent& evt) {
 
 	theChip8.setDrawFlag(true);
 	theChip8.runCycle();
+
+	evt.Skip();
 }
 
 void cMain::onExit(wxCommandEvent& evt) {
 	theChip8.stopCycle();
 	this->Close();
+
+	evt.Skip();
 }
 
 void cMain::onChangeScreenColors(wxCommandEvent& evt) {
@@ -284,6 +291,8 @@ void cMain::onChangeScreenColors(wxCommandEvent& evt) {
 			bColor[2] = col.Blue();
 		}
 	}
+
+	evt.Skip();
 }
 
 void cMain::onChangeWaveType(wxCommandEvent& evt) {
@@ -293,6 +302,8 @@ void cMain::onChangeWaveType(wxCommandEvent& evt) {
 	else if (evt.GetId() == squareID) {
 		soundMaker.setWaveType(1);
 	}
+
+	evt.Skip();
 }
 
 void cMain::onChangeWaveNote(wxCommandEvent& evt) {
@@ -301,10 +312,27 @@ void cMain::onChangeWaveNote(wxCommandEvent& evt) {
 	if (dialog.ShowModal() == wxID_OK) {
 		soundMaker.setWaveTone(dialog.GetValue());
 	}
+
+	evt.Skip();
 }
 
 void cMain::onMute(wxCommandEvent& evt) {
 	soundMaker.setMuteOn();
+
+	evt.Skip();
+}
+
+void cMain::onChangeKeys(wxCommandEvent& evt)
+{
+	std::map<int, int> changedMap(keybindings);
+
+	ControlPicker controlDialog(this, -1, wxT("Configure controls"), changedMap, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
+
+	if (controlDialog.ShowModal() == wxID_OK) {
+		keybindings = changedMap;
+	}
+
+	evt.Skip();
 }
 
 void cMain::onAbout(wxCommandEvent& evt) {
@@ -314,65 +342,64 @@ void cMain::onAbout(wxCommandEvent& evt) {
 	info.SetDescription(_("This program interprets and runs Chip-8 ROMS!"));
 	info.SetCopyright(wxT("MIT License Tom Cummings cummings.t287@gmail.com"));
 	wxAboutBox(info);
+
+	evt.Skip();
 }
 
 void cMain::onKeyDown(wxKeyEvent& evt) {
 	wxChar uc = evt.GetUnicodeKey();
 	if (uc != WXK_NONE) {
-		switch (uc) {
-		case ZERO:
+		if (uc == keybindings[0]) {
 			theChip8.updateInput(0);
-			INFO << "Zero key was pressed down";
-			break;
-		case ONE:
+		}
+		else if (uc == keybindings[1]) {
 			theChip8.updateInput(1);
-			break;
-		case TWO:
+		}
+		else if (uc == keybindings[2]) {
 			theChip8.updateInput(2);
-			break;
-		case THREE:
+		}
+		else if (uc == keybindings[3]) {
 			theChip8.updateInput(3);
-			break;
-		case FOUR:
+		}
+		else if (uc == keybindings[4]) {
 			theChip8.updateInput(4);
-			break;
-		case FIVE:
+		}
+		else if (uc == keybindings[5]) {
 			theChip8.updateInput(5);
-			break;
-		case SIX:
+		}
+		else if (uc == keybindings[6]) {
 			theChip8.updateInput(6);
-			break;
-		case SEVEN:
+		}
+		else if (uc == keybindings[7]) {
 			theChip8.updateInput(7);
-			break;
-		case EIGHT:
+		}
+		else if (uc == keybindings[8]) {
 			theChip8.updateInput(8);
-			break;
-		case NINE:
+		}
+		else if (uc == keybindings[9]) {
 			theChip8.updateInput(9);
-			break;
-		case A:
+		}
+		else if (uc == keybindings[10]) {
 			theChip8.updateInput(10);
-			break;
-		case B:
+		}
+		else if (uc == keybindings[11]) {
 			theChip8.updateInput(11);
-			break;
-		case C:
+		}
+		else if (uc == keybindings[12]) {
 			theChip8.updateInput(12);
-			break;
-		case D:
+		}
+		else if (uc == keybindings[13]) {
 			theChip8.updateInput(13);
-			break;
-		case E:
+		}
+		else if (uc == keybindings[14]) {
 			theChip8.updateInput(14);
-			break;
-		case F:
+		}
+		else if (uc == keybindings[15]) {
 			theChip8.updateInput(15);
-			break;
-		default:
-			std::cout << uc << std::endl;
 		}
 	}
+
+	//evt.Skip();
 }
 
 void cMain::onIdle(wxIdleEvent& evt) {
@@ -398,6 +425,97 @@ void cMain::onIdle(wxIdleEvent& evt) {
 		lastTime = std::chrono::steady_clock::now();
 	}
 	evt.RequestMore();
+}
+
+void cMain::parseConfigFile() {
+	std::ifstream configFile;
+	std::string line;
+	std::string key;
+	std::string value;
+	int uniValue;
+
+	INFO << "Opening config file...";
+
+	configFile.open("config.txt", std::ios::in);
+
+	if (configFile) {
+		INFO << "Config file opened successfully...";
+	}
+	else {
+		INFO << "Config file not opened...";
+	}
+
+	while (std::getline(configFile, line)) {
+		if (line.find("//") != 0 && line.length() > 0) {
+			std::size_t pos = line.find(":");
+			key = line.substr(0, pos);
+			value = line.substr(pos + 1);
+
+			std::size_t found = value.find_first_of(" ");
+
+			while (found != std::string::npos) {
+				if (found != 0) {
+					value = value.substr(0, found);
+				}
+				else {
+					value = value.substr(1);
+				}
+				found = value.find_first_of(" ");
+			}
+
+			
+			uniValue = std::stoi(value, nullptr);
+
+			if (key == "ZERO") {
+				keybindings.insert(std::pair<int, int>(0, uniValue));
+			}
+			else if (key == "ONE") {
+				keybindings.insert(std::pair<int, int>(1, uniValue));
+			}
+			else if (key == "TWO") {
+				keybindings.insert(std::pair<int, int>(2, uniValue));
+			}
+			else if (key == "THREE") {
+				keybindings.insert(std::pair<int, int>(3, uniValue));
+			}
+			else if (key == "FOUR") {
+				keybindings.insert(std::pair<int, int>(4, uniValue));
+			}
+			else if (key == "FIVE") {
+				keybindings.insert(std::pair<int, int>(5, uniValue));
+			}
+			else if (key == "SIX") {
+				keybindings.insert(std::pair<int, int>(6, uniValue));
+			}
+			else if (key == "SEVEN") {
+				keybindings.insert(std::pair<int, int>(7, uniValue));
+			}
+			else if (key == "EIGHT") {
+				keybindings.insert(std::pair<int, int>(8, uniValue));
+			}
+			else if (key == "NINE") {
+				keybindings.insert(std::pair<int, int>(9, uniValue));
+			}
+			else if (key == "A") {
+				keybindings.insert(std::pair<int, int>(10, uniValue));
+			}
+			else if (key == "B") {
+				keybindings.insert(std::pair<int, int>(11, uniValue));
+			}
+			else if (key == "C") {
+				keybindings.insert(std::pair<int, int>(12, uniValue));
+			}
+			else if (key == "D") {
+				keybindings.insert(std::pair<int, int>(13, uniValue));
+			}
+			else if (key == "E") {
+				keybindings.insert(std::pair<int, int>(14, uniValue));
+			}
+			else if (key == "F") {
+				keybindings.insert(std::pair<int, int>(15, uniValue));
+			}
+		}
+	}
 }
 
 void cMain::loadROM(std::string filename) {
