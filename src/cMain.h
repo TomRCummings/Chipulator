@@ -1,3 +1,7 @@
+/*
+cMain: The main window of the emulator; inherits from wxFrame. Keeps track of UI, UI events, input events, actually drawing the screen buffer from the Chip8, updating the sound machine, and any file IO.
+*/
+
 #pragma once
 
 #include <iostream>
@@ -21,26 +25,48 @@ public:
 	explicit cMain();
 	~cMain();
 
+	//Event handling functions
+	//Cleanup when this window closes
 	void onClose(wxCloseEvent& evt);
+	//Stops Chip8, handles state while menu is open
 	void onMenuOpen(wxMenuEvent& evt);
+	//Starts Chip8, handles state when menu closes
 	void onMenuClose(wxMenuEvent& evt);
+	//Displays file picker and passes path to helper function to open a ROM
 	void onOpenROM(wxCommandEvent& evt);
+	//Re-initializes the Chip8
 	void onReset(wxCommandEvent& evt);
+	//Stops Chip8 cycling
 	void onPause(wxCommandEvent& evt);
+	//Displays file picker and passes path to helper function to save a state file
 	void onSaveState(wxCommandEvent& evt);
+	//Displays file picker and passes path to helper function to load a state file
 	void onLoadState(wxCommandEvent& evt);
+	//Calls "onClose" when exit menu item clicked
 	void onExit(wxCommandEvent& evt);
+	//Changes color of pixels based on menu item clicked
 	void onChangeScreenColors(wxCommandEvent& evt);
+	//Changes type of wave in Beeper based on menu item clicked
 	void onChangeWaveType(wxCommandEvent& evt);
+	//Displays numeric input and passes frequency to Beeper
 	void onChangeWaveNote(wxCommandEvent& evt);
+	//Silences sound machine
 	void onMute(wxCommandEvent& evt);
+	//Displays ControlPicker frame and passes pointer to keybinding map
 	void onChangeKeys(wxCommandEvent& evt);
+	//Displays MemoryViewer frame and sets memoryViewerOpen flag to true
 	void onMemoryViewer(wxCommandEvent& evt);
+	//Displays About dialog
 	void onAbout(wxCommandEvent& evt);
+	//Handles input using keybinding map
 	void onKeyDown(wxKeyEvent& evt);
+	//Contains the render timer, which updates SDL graphics, Beeper, memory viewer based on applicable flags
 	void onIdle(wxIdleEvent& evt);
+	//Sets memoryViewerOpen flag to false
 	void onMemoryViewerClose(wxCommandEvent& evt);
+	//Pauses Chip8 (if running) and calls it to cycle once
 	void onOneCycle(wxCommandEvent& evt);
+	//Displays numeric input, passes new Chip8 cpu rate to Chip8, and restarts cycling so new rate takes effect
 	void onEmulationSpeed(wxCommandEvent& evt);
 
 	wxDECLARE_EVENT_TABLE();
@@ -73,8 +99,8 @@ private:
 	//SDL sound class
 	Beeper soundMaker;
 
-	//Chip-8 emulating class
-	chip8 theChip8;
+	//Chip-8
+	Chip8 theChip8;
 	//Keeps track of Chip-8 state for temporary pauses
 	bool runChip8 = false;
 	//Keeps track of if a ROM has been loaded

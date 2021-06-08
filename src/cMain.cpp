@@ -71,7 +71,7 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	m_pSound->Append(noteID, _T("Change Note"));
 	m_pSound->AppendCheckItem(muteID, _T("Mute"));
 
-	//Create emulation
+	//Create emulation menu
 	m_pEmulation = new wxMenu();
 	m_pEmulation->Append(changeKeysID, _T("Customize Controls"));
 	m_pEmulation->AppendSeparator();
@@ -84,7 +84,7 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	m_pHelp = new wxMenu();
 	m_pHelp->Append(aboutID, _T("About"));
 
-	//Build and show menu bar on fram
+	//Build and show menu bar on frame
 	m_pMenuBar->Append(m_pFile, _T("File"));
 	m_pMenuBar->Append(m_pGraphics, _T("Graphics"));
 	m_pMenuBar->Append(m_pSound, _T("Sound"));

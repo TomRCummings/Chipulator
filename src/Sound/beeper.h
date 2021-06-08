@@ -1,3 +1,8 @@
+/*
+Beeper: Uses SDL to handle sound generation. Only produces one tone at a time, but frequency and type of wave generated can be changed. The sound generated is very clippy when being turned on and off: needs an
+envelope to smooth it out.
+*/
+
 #pragma once
 
 #include <SDL.h>
@@ -6,6 +11,20 @@
 #include "logger.h"
 
 class Beeper {
+public:
+	//Initializes SDL audio, audio device, and audio specs
+	void initializeAudio();
+	//Function called by SDL audio_callback that fills stream with samples
+	void generateSamples(short* stream, int length);
+	//Turn sound on or off
+	void setSoundOn(bool soundOnOrOff);
+	//Turn mute on or off
+	void setMuteOn();
+	//Set timbre of tone produced by beeper
+	void setWaveType(int waveTypeID);
+	//Set tone (in Hz) produced by beeper
+	void setWaveTone(int waveHz);
+
 private:
 	//Should there be sound right now
 	bool soundOn = false;
@@ -33,17 +52,4 @@ private:
 	float sampleSine(float index);
 	//Samples a square wave at a given index
 	float sampleSquare(float index);
-public:
-	//Initializes SDL audio, audio device, and audio specs
-	void initializeAudio();
-	//Function called by SDL audio_callback that fills stream with samples
-	void generateSamples(short* stream, int length);
-	//Turn sound on or off
-	void setSoundOn(bool soundOnOrOff);
-	//Turn mute on or off
-	void setMuteOn();
-	//Set timbre of tone produced by beeper
-	void setWaveType(int waveTypeID);
-	//Set tone (in Hz) produced by beeper
-	void setWaveTone(int waveHz);
 };

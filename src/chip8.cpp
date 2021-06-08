@@ -1,6 +1,6 @@
 #include "chip8.h"
 
-void chip8::initialize() {
+void Chip8::initialize() {
 	srand(time(NULL));
 	opcode = 0x0;
 	I = 0x0;
@@ -27,13 +27,13 @@ void chip8::initialize() {
 	}
 }
 
-void chip8::loadROM(unsigned char* program) {
+void Chip8::loadROM(unsigned char* program) {
 	for (int i = 512; i < 4096; i++) {
 		memory[i] = program[i - 512];
 	}
 }
 
-void chip8::loadState(unsigned char* state) {
+void Chip8::loadState(unsigned char* state) {
 	for (int i = 0; i < 6208; i++) {
 		if (i < 4096) {
 			memory[i] = state[i];
@@ -81,81 +81,81 @@ void chip8::loadState(unsigned char* state) {
 	}
 }
 
-unsigned char* chip8::getMemory() {
+unsigned char* Chip8::getMemory() {
 	return memory;
 }
 
-unsigned char* chip8::getRegisters() {
+unsigned char* Chip8::getRegisters() {
 	return V;
 }
 
-unsigned short chip8::getI() {
+unsigned short Chip8::getI() {
 	return I;
 }
 
-unsigned short* chip8::getIPointer()
+unsigned short* Chip8::getIPointer()
 {
 	return &I;
 }
 
-unsigned short chip8::getPC() {
+unsigned short Chip8::getPC() {
 	return pc;
 }
 
-unsigned short* chip8::getPCPointer()
+unsigned short* Chip8::getPCPointer()
 {
 	return &pc;
 }
 
-unsigned short* chip8::getOpCodePointer()
+unsigned short* Chip8::getOpCodePointer()
 {
 	return &opcode;
 }
 
-unsigned short* chip8::getStack() {
+unsigned short* Chip8::getStack() {
 	return stack;
 }
 
-unsigned short chip8::getStackPointer() {
+unsigned short Chip8::getStackPointer() {
 	return stackPointer;
 }
 
-unsigned short* chip8::getStackPointerPointer()
+unsigned short* Chip8::getStackPointerPointer()
 {
 	return &stackPointer;
 }
 
-unsigned short chip8::getDelayTimer() {
+unsigned short Chip8::getDelayTimer() {
 	return delayTimer;
 }
 
-unsigned char* chip8::getDelayTimerPointer()
+unsigned short* Chip8::getDelayTimerPointer()
 {
 	return &delayTimer;
 }
 
-unsigned short chip8::getSoundTimer() {
+unsigned short Chip8::getSoundTimer() {
 	return soundTimer;
 }
 
-unsigned char* chip8::getSoundTimerPointer()
+unsigned short* Chip8::getSoundTimerPointer()
 {
 	return &soundTimer;
 }
 
-unsigned char* chip8::getScreen() {
+unsigned char* Chip8::getScreen() {
 	return screen;
 }
 
-bool chip8::getDrawFlag() {
+bool Chip8::getDrawFlag() {
 	return drawFlag;
 }
 
-void chip8::setDrawFlag(bool setter) {
+void Chip8::setDrawFlag(bool setter) {
 	drawFlag = setter;
 }
 
-void chip8::decrementTimers() {
+void Chip8::decrementTimers() {
 	if (delayTimer > 0) {
 		delayTimer--;
 	}
@@ -164,7 +164,7 @@ void chip8::decrementTimers() {
 	}
 }
 
-void chip8::cycle() {
+void Chip8::cycle() {
 	//Timing constants
 	const float cpuTicksTilUpdate = cpuRate / updateRate;
 	const float msPerTick = (1.0 / cpuRate) * 1000.0;
@@ -554,16 +554,16 @@ void chip8::cycle() {
 	isRunning = false;
 }
 
-void chip8::runCycle(bool setLoop) {
+void Chip8::runCycle(bool setLoop) {
 	shouldLoop = false;
 	if (cpuThread.joinable()) {
 		cpuThread.join();
 	}
 	shouldLoop = setLoop;
-	cpuThread = std::thread(&chip8::cycle, this);
+	cpuThread = std::thread(&Chip8::cycle, this);
 }
 
-void chip8::stopCycle(bool shouldWait) {
+void Chip8::stopCycle(bool shouldWait) {
 	shouldLoop = false;
 	if (shouldWait) {
 		if (cpuThread.joinable()) {
@@ -572,15 +572,15 @@ void chip8::stopCycle(bool shouldWait) {
 	}
 }
 
-bool chip8::isCPURunning()
+bool Chip8::isCPURunning()
 {
 	return isRunning;
 }
 
-void chip8::updateInput(int buttonPressed) {
+void Chip8::updateInput(int buttonPressed) {
 	key[buttonPressed] = true;
 }
 
-void chip8::setCPURate(int newRate) {
+void Chip8::setCPURate(int newRate) {
 	cpuRate = newRate;
 }
