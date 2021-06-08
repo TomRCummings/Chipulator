@@ -2,9 +2,8 @@
 .vscode
 #Visual Studio files
 .vs
+CMakeSettings.json
 #Build tree
 /out
-#Emulator state file
-chip8state.c8
 #Test ROMs
 /ROMS
