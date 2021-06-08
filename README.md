@@ -4,5 +4,5 @@ speed controls, and graphics & sound changer. Uses SDL for drawing pixels and ge
 and Boost for a little bit of logging.
 
 ## Author
-Thomas Cummings\n
+Thomas Cummings
 Contact me: cummings dot t287 at gmail dot com
