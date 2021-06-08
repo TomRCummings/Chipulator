@@ -1,6 +1,7 @@
 #include "cMain.h"
 
 wxBEGIN_EVENT_TABLE(cMain, wxFrame)
+	EVT_CLOSE(cMain::onClose)
 	EVT_MENU_OPEN(cMain::onMenuOpen)
 	EVT_MENU_CLOSE(cMain::onMenuClose)
 	EVT_KEY_DOWN(cMain::onKeyDown)
@@ -21,8 +22,12 @@ wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 	EVT_MENU(noteID, cMain::onChangeWaveNote)
 	EVT_MENU(muteID, cMain::onMute)
 	EVT_MENU(changeKeysID, cMain::onChangeKeys)
+	EVT_MENU(memoryViewerID, cMain::onMemoryViewer)
+	EVT_MENU(emulationSpeedID, cMain::onEmulationSpeed)
+	EVT_MENU(oneCycleID, cMain::onOneCycle)
 	EVT_MENU(aboutID, cMain::onAbout)
 	EVT_IDLE(cMain::onIdle)
+	EVT_COMMAND(wxID_ANY, MEMVIEWER_CLOSE_EVT, cMain::onMemoryViewerClose)
 wxEND_EVENT_TABLE()
 
 
@@ -66,9 +71,14 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	m_pSound->Append(noteID, _T("Change Note"));
 	m_pSound->AppendCheckItem(muteID, _T("Mute"));
 
-	//Create control menu
-	m_pControls = new wxMenu();
-	m_pControls->Append(changeKeysID, _T("Customize Controls"));
+	//Create emulation
+	m_pEmulation = new wxMenu();
+	m_pEmulation->Append(changeKeysID, _T("Customize Controls"));
+	m_pEmulation->AppendSeparator();
+	m_pEmulation->Append(memoryViewerID, _T("Memory Viewer"));
+	m_pEmulation->AppendSeparator();
+	m_pEmulation->Append(emulationSpeedID, _T("Emulation Speed"));
+	m_pEmulation->Append(oneCycleID, _T("One Cycle"));
 
 	//Create help menu
 	m_pHelp = new wxMenu();
@@ -78,7 +88,7 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	m_pMenuBar->Append(m_pFile, _T("File"));
 	m_pMenuBar->Append(m_pGraphics, _T("Graphics"));
 	m_pMenuBar->Append(m_pSound, _T("Sound"));
-	m_pMenuBar->Append(m_pControls, _T("Controls"));
+	m_pMenuBar->Append(m_pEmulation, _T("Emulation"));
 	m_pMenuBar->Append(m_pHelp, _T("Help"));
 	SetMenuBar(m_pMenuBar);
 
@@ -118,6 +128,17 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 cMain::~cMain() {
 }
 
+void cMain::setMemoryViewerOpen(bool isOpen) {
+	memoryViewerOpen = isOpen;
+}
+
+void cMain::onClose(wxCloseEvent& evt) {
+	theChip8.stopCycle();
+	updateConfigFile();
+
+	Destroy();
+}
+
 void cMain::onMenuOpen(wxMenuEvent& evt) {
 	if (theChip8.isCPURunning()) {
 		theChip8.stopCycle();
@@ -155,6 +176,8 @@ void cMain::onOpenROM(wxCommandEvent& evt) {
 
 	runChip8 = true;
 	m_pFile->FindItem(pauseID)->Check(false);
+
+	loadedROM = true;
 
 	evt.Skip();
 }
@@ -224,7 +247,6 @@ void cMain::onLoadState(wxCommandEvent& evt) {
 }
 
 void cMain::onExit(wxCommandEvent& evt) {
-	theChip8.stopCycle();
 	this->Close();
 
 	evt.Skip();
@@ -335,6 +357,12 @@ void cMain::onChangeKeys(wxCommandEvent& evt)
 	evt.Skip();
 }
 
+void cMain::onMemoryViewer(wxCommandEvent& evt) {
+	memViewer = new MemoryViewer(this, &theChip8, -1, wxT("Memory Viewer"));
+	memoryViewerOpen = true;
+	memViewer->Show(true);
+}
+
 void cMain::onAbout(wxCommandEvent& evt) {
 	wxAboutDialogInfo info;
 	info.SetName(_("Chip-8 Emulator"));
@@ -397,12 +425,15 @@ void cMain::onKeyDown(wxKeyEvent& evt) {
 		else if (uc == keybindings[15]) {
 			theChip8.updateInput(15);
 		}
+		else if (uc == keybindings[16]) {
+			onOneCycle(wxCommandEvent());
+		}
 	}
 
-	//evt.Skip();
 }
 
 void cMain::onIdle(wxIdleEvent& evt) {
+	//Timer for rendering Chip-8 pixels, sound
 	if (accumulator.count() < renderRate) {
 		accumulator += (std::chrono::steady_clock::now() - lastTime);
 		lastTime = std::chrono::steady_clock::now();
@@ -412,13 +443,16 @@ void cMain::onIdle(wxIdleEvent& evt) {
 		if (theChip8.getDrawFlag()) {
 			drawScreen();
 		}
-
 		//Turn sound on or off
 		if (theChip8.getSoundTimer() > 0) {
 			soundMaker.setSoundOn(true);
 		}
 		else {
 			soundMaker.setSoundOn(false);
+		}
+		//Update memory viewer
+		if (memoryViewerOpen) {
+			memViewer->updateMemoryViewer();
 		}
 
 		accumulator = std::chrono::milliseconds::zero();
@@ -427,7 +461,46 @@ void cMain::onIdle(wxIdleEvent& evt) {
 	evt.RequestMore();
 }
 
+void cMain::onMemoryViewerClose(wxCommandEvent& evt) {
+	memoryViewerOpen = false;
+}
+
+void cMain::onOneCycle(wxCommandEvent& evt) {
+	//If the Chip-8 is running, stop it and set "Pause" state
+	if (theChip8.isCPURunning()) {
+		theChip8.stopCycle();
+		runChip8 = false;
+
+		wxMenuItem* pauseItem = m_pFile->FindChildItem(pauseID);
+		pauseItem->Check();
+	}
+	
+	//Run one cycle
+	theChip8.runCycle(false);
+
+	evt.Skip();
+}
+
+void cMain::onEmulationSpeed(wxCommandEvent& evt) {
+	bool wasRunning = false;
+	if (theChip8.isCPURunning()) {
+		theChip8.stopCycle();
+		wasRunning = true;
+	}
+	int newCPURate = (int)wxGetNumberFromUser(_T("Enter Chip-8 rate in cycles/second (between 1 and 900)"), _T("CPU Rate:"), _T("Emulation Speed"), 800L, 1L, 900L, this);
+	
+	if (newCPURate != -1) {
+		theChip8.setCPURate(newCPURate);
+	}
+
+	if (wasRunning) {
+		theChip8.runCycle();
+	}
+}
+
 void cMain::parseConfigFile() {
+	std::string path = "config.txt";
+
 	std::ifstream configFile;
 	std::string line;
 	std::string key;
@@ -436,7 +509,34 @@ void cMain::parseConfigFile() {
 
 	INFO << "Opening config file...";
 
-	configFile.open("config.txt", std::ios::in);
+	if (FILE* file = fopen(path.c_str(), "r")) {
+		INFO << "Config file found...";
+	}
+	else {
+		INFO << "Config file not found, attempting to make one...";
+		std::ofstream configFile("config.txt");
+
+		configFile << "//Keybindings (unicode decimal)" << std::endl;
+		configFile << "ZERO: 48" << std::endl;
+		configFile << "ONE: 49" << std::endl;
+		configFile << "TWO: 50" << std::endl;
+		configFile << "THREE: 51" << std::endl;
+		configFile << "FOUR: 52" << std::endl;
+		configFile << "FIVE: 53" << std::endl;
+		configFile << "SIX: 54" << std::endl;
+		configFile << "SEVEN: 55" << std::endl;
+		configFile << "EIGHT: 56" << std::endl;
+		configFile << "NINE: 57" << std::endl;
+		configFile << "A: 65" << std::endl;
+		configFile << "B: 66" << std::endl;
+		configFile << "C: 67" << std::endl;
+		configFile << "D: 68" << std::endl;
+		configFile << "E: 69" << std::endl;
+		configFile << "F: 70" << std::endl;
+		configFile << "SKIP_FRAME: 79" << std::endl;
+	}
+
+	configFile.open(path.c_str() , std::ios::in);
 
 	if (configFile) {
 		INFO << "Config file opened successfully...";
@@ -464,7 +564,7 @@ void cMain::parseConfigFile() {
 			}
 
 			
-			uniValue = std::stoi(value, nullptr);
+			uniValue = std::stoi(value);
 
 			if (key == "ZERO") {
 				keybindings.insert(std::pair<int, int>(0, uniValue));
@@ -514,6 +614,71 @@ void cMain::parseConfigFile() {
 			else if (key == "F") {
 				keybindings.insert(std::pair<int, int>(15, uniValue));
 			}
+			else if (key == "SKIP_FRAME") {
+				keybindings.insert(std::pair<int, int>(16, uniValue));
+			}
+		}
+	}
+}
+
+void cMain::updateConfigFile() {
+	INFO << "Updating config file...";
+
+	std::ofstream configFile("config.txt");
+
+	configFile << "//Keybindings (unicode decimal)" << std::endl;
+
+	for (auto& controlPair : keybindings) {
+		if (controlPair.first == 0) {
+			configFile << "ZERO: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 1) {
+			configFile << "ONE: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 2) {
+			configFile << "TWO: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 3) {
+			configFile << "THREE: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 4) {
+			configFile << "FOUR: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 5) {
+			configFile << "FIVE: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 6) {
+			configFile << "SIX: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 7) {
+			configFile << "SEVEN: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 8) {
+			configFile << "EIGHT: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 9) {
+			configFile << "NINE: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 10) {
+			configFile << "A: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 11) {
+			configFile << "B: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 12) {
+			configFile << "C: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 13) {
+			configFile << "D: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 14) {
+			configFile << "E: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 15) {
+			configFile << "F: " << std::to_string(controlPair.second) << std::endl;
+		}
+		else if (controlPair.first == 16) {
+			configFile << "SKIP_FRAME: " << std::to_string(controlPair.second) << std::endl;
 		}
 	}
 }
@@ -567,12 +732,12 @@ void cMain::saveChip8State(std::string filename) {
 	unsigned char* machineScreen = theChip8.getScreen();
 	file.write((char*)&machineMemory[0], 4096);
 	file.write((char*)&machineRegisters[0], 16);
-	file.write((char*)&machineI, sizeof(machineI));
-	file.write((char*)&machinePC, sizeof(machinePC));
+	file.write((char*)machineI, sizeof(machineI));
+	file.write((char*)machinePC, sizeof(machinePC));
 	file.write((char*)&machineStack[0], 16*sizeof(machineI));
-	file.write((char*)&machineSP, sizeof(machineSP));
-	file.write((char*)&machineDT, sizeof(machineDT));
-	file.write((char*)&machineST, sizeof(machineST));
+	file.write((char*)machineSP, sizeof(machineSP));
+	file.write((char*)machineDT, sizeof(machineDT));
+	file.write((char*)machineST, sizeof(machineST));
 	file.write((char*)&machineScreen[0], 2048);
 	file.close();
 	INFO << "Wrote state to file.";

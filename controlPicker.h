@@ -1,5 +1,6 @@
 #include <map>
 #include <iostream>
+#include <string>
 #include <wx/wx.h>
 #include <wx/event.h>
 
@@ -15,7 +16,7 @@ public:
 
 private:
 	const int nFieldWidth = 4;
-	const int nFieldHeight = 4;
+	const int nFieldHeight = 5;
 
 	wxButton** btn;
 	wxButton* okBtn;

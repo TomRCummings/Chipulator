@@ -8,9 +8,8 @@
 #include <time.h>
 #include <wx/event.h>
 
-wxDECLARE_EVENT(DRAW_SCREEN, wxCommandEvent);
-
 class chip8 {
+private:
 	//CPU frequency
 	float cpuRate = 800;
 	//Display and timer update rate
@@ -27,7 +26,7 @@ class chip8 {
 	unsigned char memory[4096];
 	//16 8-bit registers
 	unsigned char V[16];
-	//16-bit register (stores memory addresses, so rightmost 12 bit are used)
+	//16-bit register (stores memory addresses, so rightmost 12 bits are used)
 	unsigned short I;
 	//Screen array (64x32 pixels)
 	unsigned char screen[2048];
@@ -70,11 +69,17 @@ public:
 	unsigned char* getMemory();
 	unsigned char* getRegisters();
 	unsigned short getI();
+	unsigned short* getIPointer();
 	unsigned short getPC();
+	unsigned short* getPCPointer();
+	unsigned short* getOpCodePointer();
 	unsigned short* getStack();
 	unsigned short getStackPointer();
+	unsigned short* getStackPointerPointer();
 	unsigned short getDelayTimer();
+	unsigned char* getDelayTimerPointer();
 	unsigned short getSoundTimer();
+	unsigned char* getSoundTimerPointer();
 	unsigned char* getScreen();
 	bool getDrawFlag();
 	void setDrawFlag(bool setter);
@@ -84,4 +89,5 @@ public:
 	void stopCycle(bool shouldWait = true);
 	bool isCPURunning();
 	void updateInput(int buttonPressed);
+	void setCPURate(int newRate);
 };

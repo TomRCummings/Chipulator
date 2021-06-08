@@ -14,12 +14,14 @@
 #include "chip8.h"
 #include "beeper.h"
 #include "controlPicker.h"
+#include "memoryViewer.h"
 
 class cMain : public wxFrame {
 public:
 	explicit cMain();
 	~cMain();
 
+	void onClose(wxCloseEvent& evt);
 	void onMenuOpen(wxMenuEvent& evt);
 	void onMenuClose(wxMenuEvent& evt);
 	void onOpenROM(wxCommandEvent& evt);
@@ -33,9 +35,13 @@ public:
 	void onChangeWaveNote(wxCommandEvent& evt);
 	void onMute(wxCommandEvent& evt);
 	void onChangeKeys(wxCommandEvent& evt);
+	void onMemoryViewer(wxCommandEvent& evt);
 	void onAbout(wxCommandEvent& evt);
 	void onKeyDown(wxKeyEvent& evt);
 	void onIdle(wxIdleEvent& evt);
+	void onMemoryViewerClose(wxCommandEvent& evt);
+	void onOneCycle(wxCommandEvent& evt);
+	void onEmulationSpeed(wxCommandEvent& evt);
 
 	wxDECLARE_EVENT_TABLE();
 
@@ -52,7 +58,7 @@ private:
 	wxMenu* m_pScreenColors = nullptr;
 	wxMenu* m_pSound = nullptr;
 	wxMenu* m_pWaveType = nullptr;
-	wxMenu* m_pControls = nullptr;
+	wxMenu* m_pEmulation = nullptr;
 	wxMenu* m_pHelp = nullptr;
 
 	//SDL window, handles graphics
@@ -71,6 +77,8 @@ private:
 	chip8 theChip8;
 	//Keeps track of Chip-8 state for temporary pauses
 	bool runChip8 = false;
+	//Keeps track of if a ROM has been loaded
+	bool loadedROM = false;
 	//Chip-8 rom size in bytes
 	size_t chip8ROMSize;
 	//Chip-8 rom array
@@ -83,8 +91,17 @@ private:
 	//Keybinding map (index of Chip-8 input as key, unicode value of key as value)
 	std::map<int, int> keybindings;
 
+	//Memory viewer
+	MemoryViewer* memViewer = nullptr;
+	//Memory viewer open flag
+	bool memoryViewerOpen = false;
+	//Setter for memory viewer flag
+	void setMemoryViewerOpen(bool isOpen);
+
 	//Setting file helpers
 	void parseConfigFile();
+	//Update config file helper
+	void updateConfigFile();
 	//Load ROM helper
 	void loadROM(std::string filename);
 	//Save state helper
@@ -95,5 +112,5 @@ private:
 	void drawScreen();
 
 	//wxEvent IDs
-	enum eventIDs { openROMID, resetID, pauseID, resumeID, saveStateID, loadStateID, exitID, gPID, aPID, wOBID, bOWID, ccPixelID, ccBackID, sineID, squareID, noteID, muteID, changeKeysID, aboutID };
+	enum eventIDs { openROMID, resetID, pauseID, resumeID, saveStateID, loadStateID, exitID, gPID, aPID, wOBID, bOWID, ccPixelID, ccBackID, sineID, squareID, noteID, muteID, changeKeysID, memoryViewerID, emulationSpeedID, oneCycleID, aboutID };
 };

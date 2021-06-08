@@ -1,7 +1,5 @@
 #include "chip8.h"
 
-wxDEFINE_EVENT(DRAW_SCREEN, wxCommandEvent);
-
 void chip8::initialize() {
 	srand(time(NULL));
 	opcode = 0x0;
@@ -95,8 +93,23 @@ unsigned short chip8::getI() {
 	return I;
 }
 
+unsigned short* chip8::getIPointer()
+{
+	return &I;
+}
+
 unsigned short chip8::getPC() {
 	return pc;
+}
+
+unsigned short* chip8::getPCPointer()
+{
+	return &pc;
+}
+
+unsigned short* chip8::getOpCodePointer()
+{
+	return &opcode;
 }
 
 unsigned short* chip8::getStack() {
@@ -107,12 +120,27 @@ unsigned short chip8::getStackPointer() {
 	return stackPointer;
 }
 
+unsigned short* chip8::getStackPointerPointer()
+{
+	return &stackPointer;
+}
+
 unsigned short chip8::getDelayTimer() {
 	return delayTimer;
 }
 
+unsigned char* chip8::getDelayTimerPointer()
+{
+	return &delayTimer;
+}
+
 unsigned short chip8::getSoundTimer() {
 	return soundTimer;
+}
+
+unsigned char* chip8::getSoundTimerPointer()
+{
+	return &soundTimer;
 }
 
 unsigned char* chip8::getScreen() {
@@ -551,4 +579,8 @@ bool chip8::isCPURunning()
 
 void chip8::updateInput(int buttonPressed) {
 	key[buttonPressed] = true;
+}
+
+void chip8::setCPURate(int newRate) {
+	cpuRate = newRate;
 }
