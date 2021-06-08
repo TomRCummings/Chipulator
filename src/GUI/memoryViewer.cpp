@@ -2,7 +2,7 @@
 
 wxDEFINE_EVENT(MEMVIEWER_CLOSE_EVT, wxCommandEvent);
 
-MemoryViewer::MemoryViewer(wxWindow* parent, chip8* machine, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+MemoryViewer::MemoryViewer(wxWindow* parent, Chip8* machine, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style) {
 
 	chipMachine = machine;

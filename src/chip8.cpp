@@ -125,20 +125,20 @@ unsigned short* Chip8::getStackPointerPointer()
 	return &stackPointer;
 }
 
-unsigned short Chip8::getDelayTimer() {
+unsigned char Chip8::getDelayTimer() {
 	return delayTimer;
 }
 
-unsigned short* Chip8::getDelayTimerPointer()
+unsigned char* Chip8::getDelayTimerPointer()
 {
 	return &delayTimer;
 }
 
-unsigned short Chip8::getSoundTimer() {
+unsigned char Chip8::getSoundTimer() {
 	return soundTimer;
 }
 
-unsigned short* Chip8::getSoundTimerPointer()
+unsigned char* Chip8::getSoundTimerPointer()
 {
 	return &soundTimer;
 }

@@ -14,11 +14,11 @@ cMain: The main window of the emulator; inherits from wxFrame. Keeps track of UI
 #include <wx/numdlg.h>
 #include <wx/aboutdlg.h>
 #include <SDL.h>
-#include "logger.h"
+#include "Utility/logger.h"
 #include "chip8.h"
-#include "beeper.h"
-#include "controlPicker.h"
-#include "memoryViewer.h"
+#include "Sound/beeper.h"
+#include "GUI/controlPicker.h"
+#include "GUI/memoryViewer.h"
 
 class cMain : public wxFrame {
 public:

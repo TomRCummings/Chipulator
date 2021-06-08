@@ -2,7 +2,7 @@
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
-#include "hexPrint.h"
+#include "../Utility/hexPrint.h"
 
 class MemListCtrl : public wxListCtrl {
 public:

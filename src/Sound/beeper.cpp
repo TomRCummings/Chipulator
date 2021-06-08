@@ -1,4 +1,4 @@
-#include <beeper.h>
+#include "beeper.h"
 
 //Callback function passed to SDL
 void fillBuffer(void* userdata, Uint8* _stream, int len) {

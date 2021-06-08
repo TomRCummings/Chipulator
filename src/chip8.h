@@ -10,7 +10,7 @@ specific code if the calls to the logger are removed. Must be initialized and pa
 #include <thread>
 #include <chrono>
 #include <time.h>
-#include "logger.h"
+#include "Utility/logger.h"
 
 class Chip8 {
 public:
@@ -31,10 +31,10 @@ public:
 	unsigned short* getStack();
 	unsigned short getStackPointer();
 	unsigned short* getStackPointerPointer();
-	unsigned short getDelayTimer();
-	unsigned short* getDelayTimerPointer();
-	unsigned short getSoundTimer();
-	unsigned short* getSoundTimerPointer();
+	unsigned char getDelayTimer();
+	unsigned char* getDelayTimerPointer();
+	unsigned char getSoundTimer();
+	unsigned char* getSoundTimerPointer();
 	unsigned char* getScreen();
 	bool getDrawFlag();
 	void setDrawFlag(bool setter);
