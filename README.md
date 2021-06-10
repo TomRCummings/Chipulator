@@ -31,7 +31,7 @@ From there you can either use cmake to build with your desired compiler or open 
 The CHIP-8's hexadecimal controller doesn't map very well onto modern keyboards:  
 1 2 3 C  
 4 5 6 D  
-7 8 9 E 
+7 8 9 E  
 A 0 B F  
 Chipulator, by default, maps those controls to their matching keys on your keyboard (i.e. 1 to 1, 2 to 2, etc), but you can change those bindings by going *Emulation*->*Customize Controls*.  
 
