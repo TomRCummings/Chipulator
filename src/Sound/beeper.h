@@ -42,7 +42,7 @@ private:
 
 	//These are useful variables that cannot be changed outside of this file:
 	//Volume
-	const short amplitude = 25000;
+	const short amplitude = 20000;
 	//Sampling rate
 	const int samplingRate = 44100;
 	//Buffer size
