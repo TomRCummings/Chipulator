@@ -31,7 +31,7 @@ wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 wxEND_EVENT_TABLE()
 
 
-cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), wxSize(640, 320)) {
+cMain::cMain() : wxFrame(nullptr, wxID_ANY, _T("Chipulator"), wxPoint(30, 30), wxSize(640, 320)) {
 
 	//Chip-8 setup
 	theChip8.initialize();
@@ -96,17 +96,17 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, "Chip-8 Emulator", wxPoint(30, 30), 
 	bool sdlInitialized = true;
 	sdlWindow = SDL_CreateWindowFrom((void*)this->GetHandle());
 	if (sdlWindow == NULL) {
-		//LOGGING HERE *****
+		ERRORLOG << "SDL Window could not be initialized!";
 		sdlInitialized = false;
 	}
 	else {
 		sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
 		if (sdlRenderer == NULL) {
-			//LOGGING HERE *****
+			ERRORLOG << "SDL Renderer could not be initialized!";
 			sdlInitialized = false;
 		}
 		else {
-			//LOGGING HERE *****
+			INFO << "SDL Window and Renderer successfully initialized...";
 			SDL_SetRenderDrawColor(sdlRenderer, 0x0, 0x0, 0x0, 0x0);
 		}
 	}
@@ -426,7 +426,8 @@ void cMain::onKeyDown(wxKeyEvent& evt) {
 			theChip8.updateInput(15);
 		}
 		else if (uc == keybindings[16]) {
-			onOneCycle(wxCommandEvent());
+			wxCommandEvent evt;
+			onOneCycle(evt);
 		}
 	}
 

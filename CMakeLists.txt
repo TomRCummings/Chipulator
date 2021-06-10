@@ -1,17 +1,68 @@
 cmake_minimum_required(VERSION 3.19)
 
-PROJECT(chip8emu VERSION 1.0 DESCRIPTION "Chip-8 Emulator" LANGUAGES CXX)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
-set(SDL2_INCLUDE_DIR "C:/dev/vclibs/SDL2-2.0.14/include")
-set(SDL2_LIBRARY "C:/dev/vclibs/SDL2-2.0.14/lib/x64")
+project(Chipulator VERSION 1.0 DESCRIPTION "Chip-8 Emulator/Interpreter" LANGUAGES CXX)
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS log)
-FIND_PACKAGE(wxWidgets REQUIRED COMPONENTS net core base)
-ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${wxWidgets_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
-add_executable(chip8emu "src/cApp.h" "src/cApp.cpp" "src/cMain.h" "src/cMain.cpp" "src/chip8.cpp" "src/chip8.h" "src/Utility/logger.h" "src/Utility/logger.cpp"   "src/Sound/beeper.h" "src/Sound/beeper.cpp" "src/GUI/controlPicker.cpp" "src/GUI/controlPicker.h" "src/GUI/memoryViewer.cpp" "src/GUI/memoryViewer.h" "src/GUI/regListCtrl.cpp" "src/Utility/hexPrint.h" "src/Utility/hexPrint.cpp" "src/GUI/counterListCtrl.cpp" "src/GUI/counterListCtrl.h" "src/GUI/stackListCtrl.cpp" "src/GUI/stackListCtrl.h" "src/GUI/memListCtrl.h" "src/GUI/memListCtrl.cpp" )
+set(SRC
+	src/cApp.cpp
+	src/cApp.h
+	src/cMain.cpp
+	src/cMain.h
+	src/chip8.cpp
+	src/chip8.h
+	src/GUI/controlPicker.cpp
+	src/GUI/controlPicker.h
+	src/GUI/counterListCtrl.cpp
+	src/GUI/counterListCtrl.h
+	src/GUI/memListCtrl.cpp
+	src/GUI/memListCtrl.h
+	src/GUI/memoryViewer.cpp
+	src/GUI/memoryViewer.h
+	src/GUI/regListCtrl.cpp
+	src/GUI/regListCtrl.h
+	src/GUI/stackListCtrl.cpp
+	src/GUI/stackListCtrl.h
+	src/Sound/beeper.cpp
+	src/Sound/beeper.h
+	src/Utility/hexPrint.cpp
+	src/Utility/hexPrint.h
+	src/Utility/logger.cpp
+	src/Utility/logger.h )
 
-target_link_libraries(chip8emu PRIVATE Boost::log_setup Boost::log ${SDL2_LIBRARY}/SDL2main.lib ${SDL2_LIBRARY}/SDL2.lib ${wxWidgets_LIBRARIES})
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+add_executable(Chipulator ${SRC})
+
+find_package(Boost REQUIRED COMPONENTS log)
+
+if(Boost_FOUND)
+	target_include_directories(Chipulator PRIVATE ${Boost_INCLUDE_DIR})
+	target_link_libraries(Chipulator PRIVATE Boost::log_setup Boost::log)
+else()
+	message(FATAL_ERROR "Boost not found!")
+endif()
+
+find_package(wxWidgets REQUIRED COMPONENTS net core base)
+
+if(wxWidgets_FOUND)
+	target_include_directories(Chipulator PRIVATE ${wxWidgets_INCLUDE_DIRS})
+	target_link_libraries(Chipulator PRIVATE ${wxWidgets_LIBRARIES})
+else()
+	message(FATAL_ERROR "wxWidgets not found!")
+endif()
+ 
+find_package(SDL2 REQUIRED)
+
+if(SDL2_FOUND)
+	target_include_directories(Chipulator PRIVATE ${SDL2_INCLUDE_DIR})
+	target_link_libraries(Chipulator PRIVATE ${SDL2_LIBRARIES})
+else()
+	#Especially on Windows, cmake sometimes has trouble finding
+	#the SDL2 paths
+	set(SDL2_INCLUDE_DIR "C:/dev/vclibs/SDL2-2.0.14/include")
+	set(SDL2_LIBRARIES "C:/dev/vclibs/SDL2-2.0.14/lib/x64")
+	target_include_directories(Chipulator PRIVATE ${SDL2_INCLUDE_DIR})
+	target_link_libraries(Chipulator PRIVATE ${SDL2_LIBRARIES}/SDL2.lib ${SDL2_LIBRARIES}/SDL2main.lib )
+endif()
