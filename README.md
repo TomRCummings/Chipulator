@@ -3,8 +3,6 @@ My attempt at making a Chip-8 emulator/interpreter! Comes with some snazzy tools
 speed controls, and graphics & sound changer. Uses SDL for drawing pixels and generating sound; wxWidgets for UI and event-handling;
 and Boost for a little bit of logging.
 
-![Snake!](docs/image1.PNG)
-
 ## CHIP-8
 [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) is an interpreted programming language developed in the 70s. Originally meant for the
 home-built microcomputers of the time, CHIP-8 also found a life graphing calculators in the 90s and was expanded with Chip-48 (also called Super-Chip or SCHIP).

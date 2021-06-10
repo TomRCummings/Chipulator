@@ -5,5 +5,3 @@
 CMakeSettings.json
 #Build tree
 /out
-#Test ROMs
-/ROMS
