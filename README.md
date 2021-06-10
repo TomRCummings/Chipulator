@@ -3,7 +3,7 @@ My attempt at making a Chip-8 emulator/interpreter! Comes with some snazzy tools
 speed controls, and graphics & sound changer. Uses SDL for drawing pixels and generating sound; wxWidgets for UI and event-handling;
 and Boost for a little bit of logging.
 
-(docs/image1.PNG)
+![Snake!](docs/image1.PNG)
 
 ## CHIP-8
 [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) is an interpreted programming language developed in the 70s. Originally meant for the
@@ -16,7 +16,7 @@ the display was 64x32 pixels and monochromatic, and the speaker only produces on
 
 You can learn a lot more about CHIP-8 at [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap).  
 
-(docs/image2.PNG)
+![Pong!](docs/image2.PNG)
 
 ## Installation
 Up to now, Chipulator has only tested on Windows machines (although it is theoretically cross-platform). To install,
