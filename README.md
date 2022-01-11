@@ -5,7 +5,7 @@ and Boost for a little bit of logging.
 
 ## CHIP-8
 [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) is an interpreted programming language developed in the 70s. Originally meant for the
-home-built microcomputers of the time, CHIP-8 also found a life graphing calculators in the 90s and was expanded with Chip-48 (also called Super-Chip or SCHIP).
+home-built microcomputers of the time, CHIP-8 also found a life on graphing calculators in the 90s and was expanded with Chip-48 (also called Super-Chip or SCHIP).
 Today, CHIP-8 is generally a person's first foray into emulation. A quick search on GitHub will turn up 20 or more different flavors of CHIP-8 emulators/interpreters,
 from the fabulous [Octo](https://github.com/JohnEarnest/Octo) to my own Chipulator.  
   
@@ -34,15 +34,15 @@ A 0 B F
 Chipulator, by default, maps those controls to their matching keys on your keyboard (i.e. 1 to 1, 2 to 2, etc), but you can change those bindings by going *Emulation*->*Customize Controls*.  
 
 ## ROMs
-Load a program or game into Chipulator by going to *File*->*Open ROM* and navigating to where ever you have the file saved. The file type largely doesn't matter, but most Chip-8 ROMs you'll have a .ch8 prefix. Chipulator expects ROM files of at most 3584 bytes (program data and code is expected on the RAM from memory location 512 to 4097).
-Be sure that, whatever ROM you load, it doesn't contain Super-CHIP instructions.
+Load a program or game into Chipulator by going to *File*->*Open ROM* and navigating to where ever you have the file saved on your local machine. The file type largely doesn't matter, but most Chip-8 ROMs you see have a .ch8 prefix. Chipulator expects ROM files of at most 3584 bytes (program data and code is expected on the RAM from memory location 512 to 4097).
+Be sure that, whatever ROM you load, it doesn't contain Super-CHIP instructions (SCHIP capabilities are on my to-do list though!).
 
-A huge amount of games, demos, and fun programs exist for the CHIP-8 after the decades it has been around. You'll find a handful of very simple, widely shared
+A huge amount of games, demos, and fun programs exist for the CHIP-8 after all the decades it has been around. You'll find a handful of very simple, widely shared
 examples in the "roms" folder in the repository and in the release. You can find loads more online, so be sure to explore! Keep in mind that many of the games you'll find are buggy,
 but it you do encounter a problem, don't hesitate to report an issue here.
 
 ## Reporting bugs
-Please report any bugs you may encounter at the [Issues](https://github.com/TomRCummings/Chipulator/issues) page of the project. If you don't have a Github account, feel free to email
+Please report any bugs you may encounter in the [Issues](https://github.com/TomRCummings/Chipulator/issues) page of the project. If you don't have a Github account, feel free to email
 your issue to me at cummings dot t287 at gmail dot com. When you report the bug, please include details about your system, what ROM was running at the time, and copy in the text of log.log from
 the directory the executable is in. Thank you in advance for helping to make the project better!
 
