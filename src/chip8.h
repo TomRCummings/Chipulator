@@ -48,6 +48,7 @@ public:
 	void updateInput(int buttonPressed);
 	/*Sets a new CPU rate. Change will not take effect until the next time the cpu is started again.*/
 	void setCPURate(int newRate);
+	int getCPURate();
 
 private:
 	//CPU frequency

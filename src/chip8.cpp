@@ -489,3 +489,8 @@ void Chip8::updateInput(int buttonPressed) {
 void Chip8::setCPURate(int newRate) {
 	cpuRate = newRate;
 }
+
+int Chip8::getCPURate()
+{
+	return cpuRate;
+}
