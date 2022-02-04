@@ -445,14 +445,20 @@ void Chip8::cycle() {
 			currentCPUTicks = 0;
 		}
 
+		
+		
 		//Start timing til next run
+		accumulator += (std::chrono::steady_clock::now() - lastTime);
 		lastTime = std::chrono::steady_clock::now();
-		accumulator = std::chrono::milliseconds::zero();
 
 		while (accumulator.count() < msPerTick) {
 			accumulator += (std::chrono::steady_clock::now() - lastTime);
 			lastTime = std::chrono::steady_clock::now();
 		}
+
+		//Reset counter for next cycle
+		lastTime = std::chrono::steady_clock::now();
+		accumulator = std::chrono::milliseconds::zero();
 
 	} while (shouldLoop);
 
