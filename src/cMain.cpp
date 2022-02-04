@@ -481,7 +481,7 @@ void cMain::onEmulationSpeed(wxCommandEvent& evt) {
 		theChip8.stopCycle();
 		wasRunning = true;
 	}
-	int newCPURate = (int)wxGetNumberFromUser(_T("Enter Chip-8 rate in cycles/second (between 1 and 900)"), _T("CPU Rate:"), _T("Emulation Speed"), 800L, 1L, 900L, this);
+	int newCPURate = (int)wxGetNumberFromUser(_T("Enter Chip-8 rate in cycles/second (between 1 and 900)"), _T("CPU Rate:"), _T("Emulation Speed"), long(theChip8.getCPURate()), 1L, 1800L, this);
 	
 	if (newCPURate != -1) {
 		theChip8.setCPURate(newCPURate);
