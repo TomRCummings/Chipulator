@@ -4,7 +4,6 @@ wxIMPLEMENT_APP_NO_MAIN(cApp);
 
 int main(int argc, char** argv) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		//ADD LOGGING HERE *****
 		return 1;
 	}
 

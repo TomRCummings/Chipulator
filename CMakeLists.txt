@@ -27,23 +27,15 @@ set(SRC
 	src/Sound/beeper.h
 	src/Utility/hexPrint.cpp
 	src/Utility/hexPrint.h
-	src/Utility/logger.cpp
-	src/Utility/logger.h )
+	
+	 )
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(Chipulator ${SRC})
 
-find_package(Boost REQUIRED COMPONENTS log)
-
-if(Boost_FOUND)
-	target_include_directories(Chipulator PRIVATE ${Boost_INCLUDE_DIR})
-	target_link_libraries(Chipulator PRIVATE Boost::log_setup Boost::log)
-else()
-	message(FATAL_ERROR "Boost not found!")
-endif()
-
+SET(wxWidgets_ROOT_DIR "C:/Users/Ryan/source/libs/wx315")
 find_package(wxWidgets REQUIRED COMPONENTS net core base)
 
 if(wxWidgets_FOUND)
@@ -59,10 +51,9 @@ if(SDL2_FOUND)
 	target_include_directories(Chipulator PRIVATE ${SDL2_INCLUDE_DIR})
 	target_link_libraries(Chipulator PRIVATE ${SDL2_LIBRARIES})
 else()
-	#Especially on Windows, cmake sometimes has trouble finding
-	#the SDL2 paths
-	set(SDL2_INCLUDE_DIR "C:/dev/vclibs/SDL2-2.0.14/include")
-	set(SDL2_LIBRARIES "C:/dev/vclibs/SDL2-2.0.14/lib/x64")
+	#Especially on Windows, cmake sometimes has trouble finding the SDL2 paths
+	set(SDL2_INCLUDE_DIR "C:/Users/Ryan/source/libs/SDL2-2.0.20/include")
+	set(SDL2_LIBRARIES "C:/Users/Ryan/source/libs/SDL2-2.0.20/lib/x64")
 	target_include_directories(Chipulator PRIVATE ${SDL2_INCLUDE_DIR})
 	target_link_libraries(Chipulator PRIVATE ${SDL2_LIBRARIES}/SDL2.lib ${SDL2_LIBRARIES}/SDL2main.lib )
 endif()

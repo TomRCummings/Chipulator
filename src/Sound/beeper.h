@@ -8,7 +8,6 @@ envelope to smooth it out.
 #include <SDL.h>
 #include <SDL_audio.h>
 #include <cmath>
-#include "../Utility/logger.h"
 
 class Beeper {
 public:

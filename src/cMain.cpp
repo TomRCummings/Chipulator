@@ -96,17 +96,14 @@ cMain::cMain() : wxFrame(nullptr, wxID_ANY, _T("Chipulator"), wxPoint(30, 30), w
 	bool sdlInitialized = true;
 	sdlWindow = SDL_CreateWindowFrom((void*)this->GetHandle());
 	if (sdlWindow == NULL) {
-		ERRORLOG << "SDL Window could not be initialized!";
 		sdlInitialized = false;
 	}
 	else {
 		sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
 		if (sdlRenderer == NULL) {
-			ERRORLOG << "SDL Renderer could not be initialized!";
 			sdlInitialized = false;
 		}
 		else {
-			INFO << "SDL Window and Renderer successfully initialized...";
 			SDL_SetRenderDrawColor(sdlRenderer, 0x0, 0x0, 0x0, 0x0);
 		}
 	}
@@ -158,8 +155,6 @@ void cMain::onMenuClose(wxMenuEvent& evt) {
 
 void cMain::onOpenROM(wxCommandEvent& evt) {
 
-	INFO << "Open ROM event called...";
-
 	wxFileDialog
 		openFileDialog(this, _("Open Chip-8 ROM"), "", "",
 			"", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
@@ -169,8 +164,6 @@ void cMain::onOpenROM(wxCommandEvent& evt) {
 
 	//Feed file path to load ROM function
 	std::string filePathString = openFileDialog.GetPath().ToStdString();
-
-	INFO << "File path chosen: " << filePathString;
 
 	loadROM(filePathString);
 
@@ -508,13 +501,9 @@ void cMain::parseConfigFile() {
 	std::string value;
 	int uniValue;
 
-	INFO << "Opening config file...";
-
 	if (FILE* file = fopen(path.c_str(), "r")) {
-		INFO << "Config file found...";
 	}
 	else {
-		INFO << "Config file not found, attempting to make one...";
 		std::ofstream configFile("config.txt");
 
 		configFile << "//Keybindings (unicode decimal)" << std::endl;
@@ -540,10 +529,8 @@ void cMain::parseConfigFile() {
 	configFile.open(path.c_str() , std::ios::in);
 
 	if (configFile) {
-		INFO << "Config file opened successfully...";
 	}
 	else {
-		INFO << "Config file not opened...";
 	}
 
 	while (std::getline(configFile, line)) {
@@ -623,7 +610,6 @@ void cMain::parseConfigFile() {
 }
 
 void cMain::updateConfigFile() {
-	INFO << "Updating config file...";
 
 	std::ofstream configFile("config.txt");
 
@@ -686,34 +672,25 @@ void cMain::updateConfigFile() {
 
 void cMain::loadROM(std::string filename) {
 	//Zero ROM array
-	INFO << "Opening ROM...";
 	for (int i = 0; i < chip8ROMSize; i++) {
 		chip8ROM[i] = 0;
 	}
 
-	INFO << "Zeroed ROM array...";
 
 	//Open file stream to specified file
 	std::ifstream inf(filename.c_str(), std::ios::binary);
-
-	INFO << "Opened file...";
 
 	if (inf) {
 		//Read in bytes from file to buffer
 		inf.read((char*)&chip8ROM[0], chip8ROMSize);
 		inf.close();
 
-		INFO << "Read file into ROM array...";
-
 		theChip8.initialize();
 		theChip8.loadROM(chip8ROM);
-
-		INFO << "Loaded ROM into Chip-8...";
 
 		theChip8.runCycle();
 	}
 	else {
-		ERRORLOG << "Not able to open chosen file...";
 	}
 }
 
@@ -741,7 +718,6 @@ void cMain::saveChip8State(std::string filename) {
 	file.write((char*)machineST, sizeof(machineST));
 	file.write((char*)&machineScreen[0], 2048);
 	file.close();
-	INFO << "Wrote state to file.";
 }
 
 void cMain::loadChip8State(std::string filename) {

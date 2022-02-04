@@ -10,7 +10,6 @@ specific code if the calls to the logger are removed. Must be initialized and pa
 #include <thread>
 #include <chrono>
 #include <time.h>
-#include "Utility/logger.h"
 
 class Chip8 {
 public:
